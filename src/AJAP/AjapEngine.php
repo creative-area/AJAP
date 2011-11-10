@@ -1,6 +1,6 @@
 <?php
 
-require_once "ConfigurableClass.php"; // TODO: remove dependency
+require_once dirname(__FILE__)."/../ConfigurableClass.php"; // TODO: remove dependency
 
 require_once dirname(__FILE__)."/AjapReflector.php";
 require_once dirname(__FILE__)."/AjapCache.php";
