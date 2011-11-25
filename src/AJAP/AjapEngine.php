@@ -538,7 +538,7 @@ class AjapEngine extends ConfigurableClass {
       
     } else {
 
-      if ($header) header('ContentType: application/' . ( $callback === FALSE ? 'json' : 'javascript' ) .'; charset='.$this->getOption("encoding") );
+      if ($header) header('Content-Type: application/' . ( $callback === FALSE ? 'json' : 'javascript' ) .'; charset='.$this->getOption("encoding") );
       $data = isset($_REQUEST["__ajap__data"]) ? json_decode($_REQUEST["__ajap__data"],true) : array();
       $this->execute($execute,$data,$callback);
     }
