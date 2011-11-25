@@ -1,6 +1,6 @@
 <?php
 
-require_once("annotations_fast.php"); // TODO: include in AjapEngine constructor
+require_once dirname(__FILE__)."/../annotations_fast.php"; // TODO: include in AjapEngine constructor
 
 class AjapAnnotation extends Annotation {}
 
