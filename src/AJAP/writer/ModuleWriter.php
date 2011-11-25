@@ -107,7 +107,7 @@ class AjapModuleWriter {
 		
 		$newline = $this->options["nl"];
 		
-		$code = $newline."if(typeof(window.Ajap)=='undefined'){".$newline;
+		$code = $newline."if(!window.Ajap){".$newline;
 		
 		$dir = realpath(dirname(__FILE__)."/../js");
 		
