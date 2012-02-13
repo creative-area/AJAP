@@ -35,8 +35,8 @@
 		return request;
 	};
 
-	Ajap.post = function ( moduleName, methodName, form, cache ) {
-		var data = Ajap.Engine.serializeForm( form );
+	Ajap.post = function ( moduleName, methodName, data, cache ) {
+		data[ 0 ] = Ajap.serializeForm( data[ 0 ] );
 		return Ajap.send( moduleName, methodName, data, cache );
 	};
 
