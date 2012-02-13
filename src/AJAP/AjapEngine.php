@@ -223,7 +223,7 @@ class AjapEngine extends ConfigurableClass {
 	  }
 
       // Properties
-      $properties =& $class->getProperties();
+      $properties = $class->getProperties();
 	  foreach ($properties as &$property) {
 
         // Ignore non public properties
@@ -237,7 +237,7 @@ class AjapEngine extends ConfigurableClass {
       }
 
       // Methods
-      $methods =& $class->getMethods();
+      $methods = $class->getMethods();
       foreach ($methods as &$method) {
 
         // Ignore non public methods

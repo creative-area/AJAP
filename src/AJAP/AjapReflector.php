@@ -30,7 +30,7 @@ class AjapReflector {
 	 */
 	public static function getConstructionParameters(&$class) {
 		$params = array();
-		$constructor =& $class->getConstructor();
+		$constructor = $class->getConstructor();
 		if (!is_object($constructor)) return null;
 		if ($constructor->hasAnnotation("Implicit")) {
 			$constructorParams =& $constructor->getParameters();
@@ -50,10 +50,10 @@ class AjapReflector {
 	public static function &getInstance(&$class) {
 		static $instances = array();
 		AjapReflector::$use++;
-		$className =& $class->getName();
+		$className = $class->getName();
 		if (!isset($instances[$className])) {
 			$args = AjapReflector::getConstructionParameters($class);
-			if ($args==null) $instances[$className] =& $class->newInstance();
+			if ($args==null) $instances[$className] = $class->newInstance();
 			else $instances[$className] =& $class->newInstanceArgs($args);
 		} else AjapReflector::$cacheUse++;
 		return $instances[$className];
@@ -110,9 +110,14 @@ class AjapReflector {
 	}
 	
 	public static function isAjap($path,&$class) {
-		return $class->hasAnnotation("Ajap")
-			&& ($class->getName()=="Ajap_Callbacks"
-				|| AjapFileHelper::getModuleName($path,$class->getFileName())!==FALSE);
+		if ( $class->hasAnnotation("Ajap") ) {
+			if ( $class->getName()=="Ajap_Callbacks" ) {
+				return TRUE;
+			}
+			$filename = $class->getFileName();
+			return AjapFileHelper::getModuleName($path,$filename)!==FALSE;
+		}
+		return FALSE;
 	}
 
 	/**

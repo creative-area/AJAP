@@ -365,7 +365,12 @@ class AjapObjectWriter {
 			$this->_implicits = implode(",",$tmp);
 			array_unshift($tmp,"form");
 			$this->_implicits_post = "[".implode(",",$tmp)."]";
-			$this->_module = AjapFileHelper::getModuleName($this->module_path,$this->class->getFileName());
+
+			// Yes, having to create variables because of a dumb as fuck "strict standard"
+			// is so much fun, welcome to interpreters as they were in the 80s: COBOL-style
+			$module = $this->module_path;
+			$filename = $this->class->getFileName();
+			$this->_module = AjapFileHelper::getModuleName($module,$filename);
 		}
 		
 		$name = $method->getName();
@@ -470,7 +475,10 @@ class AjapObjectWriter {
 	 */
 	private function generateEncapsulate($code) {
 		
-		$module = AjapFileHelper::getModuleName($this->module_path,$this->class->getFileName());
+		// Yes, having to create variables because of a dumb as fuck "strict standard"
+		// is so much fun, welcome to interpreters as they were in the 80s: COBOL-style
+		$filename = $this->class->getFileName();
+		$module = AjapFileHelper::getModuleName($this->module_path,$filename);
 		
 		$setLoaded = "!Ajap._classIsLoaded('$module')";
 		
