@@ -68,4 +68,11 @@ class Simple {
 	public function error( $message ) {
 		throw new AjapException( $message );
 	}
+	
+	/**
+	 * @AjapPost
+	 */
+	public function post( $data ) {
+		return $data[ "my-input" ];
+	}
 } 

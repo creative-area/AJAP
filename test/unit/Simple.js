@@ -65,3 +65,14 @@ test( "error", function() {
 		start();
 	});
 });
+
+test( "AjapPost", function() {
+	expect( 1 );
+	stop();
+	var form = jQuery( "<form>" ).append( $( "<input name='my-input'>" ).val( "my-value" ) )[ 0 ];
+	Simple.post( form ).done(function( value ) {
+		strictEqual( value, "my-value", "form properly serialized" );
+		start();
+	});
+
+});
