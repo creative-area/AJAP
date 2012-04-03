@@ -37,9 +37,9 @@
 						defer.reject( "Illformed URL or Unknown Format", url && url[ 2 ] );
 					} else {
 						realAction = function() {
-							return cache || ( cache = handlers[ tmp[2] ]( url[ 3 ] ) );
+							return cache || ( cache = handlers[ url[2] ]( url[ 3 ] ) );
 						};
-						if ( !tmp[ 1 ] ) {
+						if ( !url[ 1 ] ) {
 							defer = realAction();
 							realAction = undefined;
 						}
