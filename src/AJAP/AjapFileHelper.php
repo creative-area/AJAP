@@ -45,8 +45,10 @@ class AjapFileHelper {
 	
 	public static function PHP_SELF_dirname() {
 		global $_SERVER;
-		return ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 'https://' : 'http://')
-			   .$_SERVER['HTTP_HOST'].AjapFileHelper::safe_dirname($_SERVER['PHP_SELF']);
+		return
+		 ( isset( $_SERVER[ "HTTPS" ] ) ? ( $_SERVER[ "HTTPS" ] == "on" ? "https://" : "http://" ) : "" )
+		 .( isset( $_SERVER[ "HTTP_HOST" ] ) ? $_SERVER[ "HTTP_HOST" ] : "" )
+		 .AjapFileHelper::safe_dirname( $_SERVER[ "PHP_SELF" ] );
 	}
 
 	private static function &getDirectories(&$path) {
