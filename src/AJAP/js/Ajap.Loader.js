@@ -5,7 +5,9 @@
 		urls = {},
 		head = document.getElementsByTagName( "head" )[ 0 ];
 		handlers = {
-			JS: Ajap.getScript,
+			JS: function( url ) {
+				return Ajap.ajax( url, "script" );
+			},
 			CSS: function( url ) {
 				var link = document.createElement("link");
 				link.href = url;
