@@ -111,7 +111,7 @@ class AjapModuleWriter {
 		
 		$dir = realpath( dirname(__FILE__) . "/../js" );
 
-		$main = "$dir/Ajap.js";
+		$main = "$dir/main.js";
 		$code = file_get_contents( $main );
 		
 		$engine = $this->js_engine;
@@ -119,9 +119,9 @@ class AjapModuleWriter {
 		
 		$extensionsCode = "";
 		$extensionsFiles = array(
-			"$dir/Ajap.Loader.js",
-			"$dir/Ajap.Net.js",
-			"$dir/Ajap.Style.js",
+			"$dir/loader.js",
+			"$dir/net.js",
+			"$dir/style.js",
 		);
 		
 		foreach ( $extensionsFiles as $file ) {
