@@ -10,7 +10,7 @@ class AjapAnnotations {
 			"DependsOn" => "strings",
 			"JS" => "strings",
 			"Virtual" => "flag",
-			"Volatile" => "flag"
+			"Volatile" => "flag",
 		),
 		"Method" => array(
 			"CrossDomain" => "flag",
@@ -18,6 +18,8 @@ class AjapAnnotations {
 			"Dynamic" => "flag",
 			"Init" => "flag",
 			"JS" => "flag",
+			"Local" => "flag",
+			"NonBlocking" => "flag",
 			"Post" => "flag",
 			"RemoteJSONP" => "string",
 			"Template" => array(
@@ -28,6 +30,7 @@ class AjapAnnotations {
 		"Property" => array(
 			"Dynamic" => "flag",
 			"Implicit" => "flag",
+			"Local" => "flag",
 		),
 	);
 
