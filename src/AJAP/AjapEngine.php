@@ -153,10 +153,9 @@ class AjapEngine extends ConfigurableClass {
       if ($class->getName()=="Ajap_Callbacks") return;
   	
       // Handle dependencies
-      if ($class->hasAnnotation("DependsOn")) {
-      	$tmp = $class->getAllAnnotations("DependsOn");
+      if (( $tmp = $class->getAnnotation("DependsOn") )) {
       	$dependsOn = array();
-      	foreach ($tmp as $a) $dependsOn[] = $a->value;
+      	foreach ($tmp as $a) $dependsOn[] = $a;
       	$classes = $this->getClassesFor($dependsOn);
    		foreach ($classes as &$c) $this->renderClass($c,$writer,$alreadyDone);
       }
@@ -180,18 +179,17 @@ class AjapEngine extends ConfigurableClass {
       );
       
       // Deal with CSS if needed
-	  if ($class->hasAnnotation("CSS")) {
-		$tmp = $class->getAllAnnotations("CSS");
+	  if (( $tmp = $class->getAnnotation("CSS") )) {
       	foreach ($tmp as $a) {
-      		if (AjapStringHelper::startsWith($a->value,"method:")) {
-      			$methodName = substr($a->value,7);
+      		if (AjapStringHelper::startsWith($a,"method:")) {
+      			$methodName = substr($a,7);
       			if (!isset($methods_to_ignore[$methodName])) {
-	      			$writer->addCascadingStyleSheet($class->getMethod(substr($a->value,7)));
+	      			$writer->addCascadingStyleSheet($class->getMethod(substr($a,7)));
 	      			$methods_to_ignore[$methodName] = true;
       			}
       		}
       		else
-      			$writer->addCascadingStyleSheet($a->value);
+      			$writer->addCascadingStyleSheet($a);
       	}
 	  }
 	  $cssFile = substr($class->getFileName(),0,-4).".css";
@@ -201,25 +199,23 @@ class AjapEngine extends ConfigurableClass {
 	  }
 	  
       // Deal with JS files
-      if ($class->hasAnnotation("JS")) {
-      	$tmp = $class->getAllAnnotations("JS");
+      if (( $tmp = $class->getAnnotation("JS") )) {
       	foreach ($tmp as $a) {
-      		if (AjapStringHelper::startsWith($a->value,"method:")) {
-      			$methodName = substr($a->value,7);
+      		if (AjapStringHelper::startsWith($a,"method:")) {
+      			$methodName = substr($a,7);
       			if (!isset($methods_to_ignore[$methodName])) {
-	      			$writer->addJavascript($class->getMethod(substr($a->value,7)));
+	      			$writer->addJavascript($class->getMethod(substr($a,7)));
 	      			$methods_to_ignore[$methodName] = true;
       			}
       		}
       		else
-      			$writer->addJavascript($a->value);
+      			$writer->addJavascript($a);
       	}
       }
       
 	  // Aliases
-	  if ($class->hasAnnotation("Alias")) {
-		$tmp = $class->getAllAnnotations("Alias");
-		foreach ($tmp as $a) $writer->addAlias($a->value);
+	  if (( $tmp = $class->getAnnotation("Alias") )) {
+		foreach ($tmp as $a) $writer->addAlias( $a );
 	  }
 
       // Properties
@@ -230,7 +226,7 @@ class AjapEngine extends ConfigurableClass {
         if (!$property->isPublic()) continue;
 
         // Ignore properties tagged as local
-        if ($property->hasAnnotation("Local")) continue;
+        if ($property->getAnnotation("Local")) continue;
 
         // Add to writer
         $writer->addProperty($property);
@@ -247,26 +243,20 @@ class AjapEngine extends ConfigurableClass {
         if (isset($methods_to_ignore[$method->getName()])) continue;
 
         // Ignore methods tagged as local
-        if ($method->hasAnnotation("Local")) continue;
+        if ($method->getAnnotation("Local")) continue;
 
         // Apply user defined filters
         if ($this->getOption("render_filter")!==FALSE
         && !call_user_func($this->getOption("render_filter"),$method)) continue;
         
         // Check if CSS, if so, add to CSS block
-        if ($method->hasAnnotation("CSS")) {
+        if ($method->getAnnotation("CSS")) {
         	$writer->addCascadingStyleSheet($method);
         	continue;
         }
         
-        // Check if pure javascript, if so add to javascript_code block
-        if ($method->hasAnnotation("JS")) {
-        	$writer->addJavascript($method);
-        	continue;
-        }
-
         // Check if init related javascript, if so add to init_code
-        if ($method->hasAnnotation("Init")) {
+        if ($method->getAnnotation("Init")) {
         	$writer->addInitializationJavascript($method);
         	continue;
         }
@@ -413,7 +403,7 @@ class AjapEngine extends ConfigurableClass {
 
       $class =& AjapReflector::getReflectionClass($className);
 
-      if (!$class->hasAnnotation("Ajap")) throw new Exception('Class cannot be reached');
+      if (!$class->getAnnotation("Ajap")) throw new Exception('Class cannot be reached');
       
       // Get implicits
       $implicit = array();
@@ -425,10 +415,10 @@ class AjapEngine extends ConfigurableClass {
 	        if (!$property->isPublic()) continue;
 
 	        // Ignore properties tagged as local
-	        if ($property->hasAnnotation("Local")) continue;
+	        if ($property->getAnnotation("Local")) continue;
 	
 	        // Ignore properties not tagged as Implicit
-	        if (!$property->hasAnnotation("Implicit")) continue;
+	        if (!$property->getAnnotation("Implicit")) continue;
 	
 	        // Add to implicit
 	        $name = $property->getName();
@@ -464,21 +454,20 @@ class AjapEngine extends ConfigurableClass {
 
       // Filter method
       if (!$method->isPublic()
-          || $method->hasAnnotation("Local")
-          || $method->hasAnnotation("SelfSerialized")
-          || $method->hasAnnotation("JS")
+          || $method->getAnnotation("Local")
+          || $method->getAnnotation("JS")
           || ($this->getOption("execute_filter")!==FALSE && !call_user_func($this->getOption("execute_filter"),$method))) throw new Exception('Method cannot be executed');
           
       // If non blocking, close session
-      if ($method->hasAnnotation("NonBlocking")) session_write_close();
+      if ($method->getAnnotation("NonBlocking")) session_write_close();
       
       // Can be called using jsonp?
-      if ( $callback !== FALSE && !$method->hasAnnotation("CrossDomain") ) {
+      if ( $callback !== FALSE && !$method->getAnnotation("CrossDomain") ) {
       	throw new Exception("Unauthorized");
       }
 
       // Call
-      if ($method->hasAnnotation("AjapPost")) {
+      if ($method->getAnnotation("Post")) {
        if (count($data)==0) throw new Exception("Illformed parameters [< ".var_export($data,TRUE)." >]");
        $post = array();
        parse_str($data[0],$post);

@@ -3,7 +3,7 @@
 /**
  * @Ajap
  * 
- * @Alias( "SimpleAlias" )
+ * @Alias SimpleAlias
  */
 class Simple {
 	
@@ -32,7 +32,7 @@ class Simple {
 	}
 	
 	/**
-	 * @SelfSerialized
+	 * @JS
 	 */
 	public function __ajap__onunload() {
 		return '
@@ -53,7 +53,7 @@ class Simple {
 	}
 	
 	/**
-	 * @SelfSerialized
+	 * @JS
 	 */
 	public function javascript( $value ) {
 		return '
@@ -70,7 +70,7 @@ class Simple {
 	}
 	
 	/**
-	 * @AjapPost
+	 * @Post
 	 */
 	public function post( $data ) {
 		return $data[ "my-input" ];

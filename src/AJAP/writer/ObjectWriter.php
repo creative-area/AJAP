@@ -60,7 +60,7 @@ class AjapObjectWriter {
 	private function generateComment(&$object) {
 		static $emptyLine = 
 		"// -----------------------------------------------------------------------------";
-		if ($this->isCompact || ($object!=$this->class && $this->class->hasAnnotation("Volatile"))) return "";
+		if ($this->isCompact || ($object!=$this->class && $this->class->getAnnotation("Volatile"))) return "";
 		$doc_comment = $object->getDocComment();
 		$doc_comment = str_replace("\r\n","\n",substr($doc_comment,2,-2));
 		$lines = explode("\n",$doc_comment);
@@ -173,7 +173,7 @@ class AjapObjectWriter {
 
 		$nbParams = count($method->getParameters());
 		$params = $nbParams>0?array_fill(0,$nbParams,0):array();
-		$dynamic = ($this->isForCache && $method->hasAnnotation("Dynamic"));
+		$dynamic = ($this->isForCache && $method->getAnnotation("Dynamic"));
 		
 		if (!$dynamic) $code = AjapReflector::doCall($this->class,$method,$params);
 		else {
@@ -182,7 +182,7 @@ class AjapObjectWriter {
 			$code = "AjapReflector::dynamicDoCall('$this->realClassName','".$method->getName()."',$params)";
 		}
 		
-		if ($method->hasAnnotation("Template")) {
+		if ($method->getAnnotation("Template")) {
 			$a = $method->getAnnotation("Template");
 			if ($dynamic) {
 				$code = "AjapTemplate::transform($code,'$this->nl',".($a->normalizeSpace?"true":"false").")";
@@ -262,14 +262,14 @@ class AjapObjectWriter {
 		static $params = array();
 		
 		// Does it actually generate code?
-		if ($method->hasAnnotation(AjapObjectWriter::$TYPE_STRING[$type])) {
+		if ($method->getAnnotation(AjapObjectWriter::$TYPE_STRING[$type])) {
 			$code = $this->generateCodeMethodBody($type,$method);
 			if ($code=="") return "";
 			return $this->generateAnonymousFunction($code);
 		}
 		
 		// Else it provides an URI
-		$dynamic = $this->isForCache && $method->hasAnnotation("Dynamic");
+		$dynamic = $this->isForCache && $method->getAnnotation("Dynamic");
 		if ($dynamic) {
 			$this->hasDynamic = true;
 			$uri = 'AjapFileHelper::resolveURI(AjapReflector::dynamicDoCall("'.$this->realClassName.'","'.$method->getName().'"),"'.$this->base_uri.'","'.$this->base_dir.'")';
@@ -319,14 +319,14 @@ class AjapObjectWriter {
 	 */
 	private function generateRemoteJSONPMethod(&$method) {
 		
-		if ($this->class->hasAnnotation("Virtual")
-			|| $this->class->hasAnnotation("Volatile")) return "";
+		if ($this->class->getAnnotation("Virtual")
+			|| $this->class->getAnnotation("Volatile")) return "";
 			
 		// url
-		$url = $this->transformURLTemplate($method->getAnnotation("RemoteJSONP")->value);
+		$url = $this->transformURLTemplate($method->getAnnotation("RemoteJSONP"));
 			
 		// Is it cached?
-		$cached = $method->hasAnnotation("Cached")?"true":"false";
+		$cached = $method->getAnnotation("Cached")?"true":"false";
 		
 		// Get params
 		$params = $method->getParameters();
@@ -355,8 +355,8 @@ class AjapObjectWriter {
 	 */
 	private function generateAjapMethod(&$method) {
 		
-		if ($this->class->hasAnnotation("Virtual")
-			|| $this->class->hasAnnotation("Volatile")) return "";
+		if ($this->class->getAnnotation("Virtual")
+			|| $this->class->getAnnotation("Volatile")) return "";
 		
 		if ($this->_implicits==null) {
 			$tmp = array();
@@ -376,10 +376,10 @@ class AjapObjectWriter {
 		$name = $method->getName();
 		
 		// Is it cached?
-		$cached = $method->hasAnnotation("Cached")?",true":"";
+		$cached = $method->getAnnotation("Cached")?",true":"";
 		
-		// Is it AjapPost?
-		if ($method->hasAnnotation("AjapPost")) {
+		// Is it Post?
+		if ($method->getAnnotation("Post")) {
 			return $this->generateComment($method)
 				."$name:function(form){".$this->nl
 				."return Ajap.post('$this->_module','$name',$this->_implicits_post$cached);".$this->nl
@@ -406,25 +406,25 @@ class AjapObjectWriter {
 	private function generateMethod(&$method) {
 				
 		// Is it Virtual?
-		if ($method->hasAnnotation("Virtual")) return "";
+		if ($method->getAnnotation("Virtual")) return "";
 		
 		// Is it non-inherited and are we the declaring class?
-		if ($method->hasAnnotation("NotInherited")
+		if ($method->getAnnotation("NotInherited")
 			&& $method->getDeclaringClass()==$this->class)
 			return "";
 			
 		// Is it RemoteJSONP
-		if ($method->hasAnnotation("RemoteJSONP"))
+		if ($method->getAnnotation("RemoteJSONP"))
 			return $this->generateRemoteJSONPMethod($method);
 		
 		// Is it Ajap?
-		if (!$method->hasAnnotation("SelfSerialized")
-			&& !$method->hasAnnotation("Init")
-			&& !$method->hasAnnotation("Template"))
+		if (!$method->getAnnotation("JS")
+			&& !$method->getAnnotation("Init")
+			&& !$method->getAnnotation("Template"))
 			return $this->generateAjapMethod($method);
 			
 		// Is it inherited?
-		if (!$method->hasAnnotation("NotInherited")
+		if (!$method->getAnnotation("NotInherited")
 			&& isset($this->_checkSuper[$method->getDeclaringClass()->getName()]))
 			return "";
 		
@@ -433,7 +433,7 @@ class AjapObjectWriter {
 		foreach($params as &$param) $param = '$'.$param->getName();
 		
 		// Do we put the name?
-		$name = $method->hasAnnotation("Init")?"":($method->getName().":");
+		$name = $method->getAnnotation("Init")?"":($method->getName().":");
 		
 		return $this->generateComment($method)
 			.$name."function(".implode(",",$params)."){".$this->nl
@@ -448,17 +448,17 @@ class AjapObjectWriter {
 	 */
 	private function generateProperty(&$property) {
 		
-		if ($property->hasAnnotation("Inherited")
+		if ($property->getAnnotation("Inherited")
 			&& $property->getDeclaringClass()!=$this->class) return "";
 			
-		if ($this->class->hasAnnotation("Virtual")
-			&& !$property->hasAnnotation("Inherited")) return "";
+		if ($this->class->getAnnotation("Virtual")
+			&& !$property->getAnnotation("Inherited")) return "";
 		
 		$name = $property->getName();
 		$code = $this->generateComment($property)."\$$name:";
 		
 		// Is it dynamic?
-		$dynamic = $this->isForCache && $property->hasAnnotation("Dynamic");
+		$dynamic = $this->isForCache && $property->getAnnotation("Dynamic");
 		if ($dynamic) {
 			$this->hasDynamic = true;
 			$code .= "<?php echo json_encode(AjapReflector::dynamicDoGet('$this->realClassName','$name')); ?>";
@@ -533,7 +533,7 @@ class AjapObjectWriter {
 		$tmp = $this->class->getParentClass();
 		$super = FALSE;
 		while (is_object($tmp))  {
-			if (AjapReflector::isAjap($this->module_path,$tmp) && !$tmp->hasAnnotation("Volatile")) {
+			if (AjapReflector::isAjap($this->module_path,$tmp) && !$tmp->getAnnotation("Volatile")) {
 				$name = $tmp->getName();
 				$this->_checkSuper[$name]=true;
 				if ($super===FALSE) $super = $name;
@@ -584,7 +584,7 @@ class AjapObjectWriter {
 	private function generateObjectRelated() {
 		
 		$code = $this->generateObject();
-		if ($code!="" && !$this->class->hasAnnotation("Volatile")) $code .= $this->generateAllAlias();
+		if ($code!="" && !$this->class->getAnnotation("Volatile")) $code .= $this->generateAllAlias();
 		return $code;
 	}
 	
@@ -596,12 +596,12 @@ class AjapObjectWriter {
 		
 		$object = $this->generateObjectRelated();
 		if ($object!="") $object .= $this->nl;
-		else if (count($this->init)==0 || $this->class->hasAnnotation("Virtual")) return "";
+		else if (count($this->init)==0 || $this->class->getAnnotation("Virtual")) return "";
 
 		$initThis = ($object=="")?'{}':'$__ajap__object';
 
 		$code = "";
-		if (!$this->class->hasAnnotation("Virtual")) {
+		if (!$this->class->getAnnotation("Virtual")) {
 			foreach ($this->init as &$init) {
 				$tmp = $this->generateAnonymousFunction(
 					$this->generateCodeMethodBody(OBJECT_WRITER_JS,$init)
@@ -739,7 +739,7 @@ class AjapObjectWriter {
 	 */
 	public function addProperty(&$toAdd) {
 		$this->properties[count($this->properties)] =& $toAdd;
-		if ($toAdd->hasAnnotation("Implicit"))
+		if ($toAdd->getAnnotation("Implicit"))
 			$this->implicits[count($this->implicits)] =& $toAdd;
 	}
 

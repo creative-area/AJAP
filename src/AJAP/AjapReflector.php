@@ -1,7 +1,7 @@
 <?php
 
-require_once dirname(__FILE__)."/AjapAnnotation.php";
-require_once dirname(__FILE__)."/AjapFileHelper.php";
+require_once dirname( __FILE__ ) . "/AjapAnnotations.php";
+require_once dirname( __FILE__ ) . "/AjapFileHelper.php";
 
 class AjapReflector {
 	
@@ -11,15 +11,11 @@ class AjapReflector {
 	/**
 	 * Get singleton reflection class for class name
 	 * @param string $className class name
-	 * @return ReflectionAnnotatedClass
+	 * @return AjapClass
 	 */
-	public static function &getReflectionClass($className) {
-		static $_class = array();
-		AjapReflector::$use++;
-		if (!isset($_class[$className])) {
-			$_class[$className] = new ReflectionAnnotatedClass($className);
-		} else AjapReflector::$cacheUse++;
-		return $_class[$className];
+	public static function &getReflectionClass( $className ) {
+		$tmp =& AjapClass::get( $className );
+		return $tmp;
 	}
 	
 	/**
@@ -28,14 +24,16 @@ class AjapReflector {
 	 * @param ReflectionAnnotatedClass $class
 	 * @return array construction parameters (empty if no annotation)
 	 */
-	public static function getConstructionParameters(&$class) {
+	public static function getConstructionParameters( &$class ) {
 		$params = array();
 		$constructor = $class->getConstructor();
-		if (!is_object($constructor)) return null;
-		if ($constructor->hasAnnotation("Implicit")) {
+		if ( !is_object( $constructor ) ) {
+			return null;
+		}
+		if ( $constructor->getAnnotation("Implicit") ) {
 			$constructorParams =& $constructor->getParameters();
-			foreach ($constructorParams as &$constructorParam) {
-				array_push($params,AjapEngine::getImplicit($constructorParam->getName()));
+			foreach ( $constructorParams as &$constructorParam ) {
+				array_push( $params, AjapEngine::getImplicit( $constructorParam->getName() ) );
 			}
 		}
 		return $params;
@@ -47,7 +45,7 @@ class AjapReflector {
 	 * @param ReflectionAnnotatedClass $class
 	 * @return stdClass
 	 */
-	public static function &getInstance(&$class) {
+	public static function &getInstance( &$class ) {
 		static $instances = array();
 		AjapReflector::$use++;
 		$className = $class->getName();
@@ -59,63 +57,74 @@ class AjapReflector {
 		return $instances[$className];
 	}
 	
-	public static function resolveProperty(&$class,&$property) {
-		$class = AjapReflector::getReflectionClass($class);
-		$property = $class->getProperty($property);
+	public static function resolveProperty( &$class, &$property ) {
+		$class = AjapReflector::getReflectionClass( $class );
+		$property = $class->getProperty( $property );
 	}
 	
-	public static function resolveMethod(&$class,&$method) {
-		$class = AjapReflector::getReflectionClass($class);
-		$method = $class->getMethod($method);
+	public static function resolveMethod( &$class, &$method ) {
+		$class = AjapReflector::getReflectionClass( $class );
+		$method = $class->getMethod( $method );
 	}
 	
-	public static function doGet(&$class,&$property) {
+	public static function doGet( &$class, &$property ) {
 		$object = null;
-		if (!$property->isStatic()) $object =& AjapReflector::getInstance($class);
+		if ( !$property->isStatic() ) {
+			$object =& AjapReflector::getInstance( $class );
+		}
+		return $property->getValue( $object );
+	}
+	
+	public static function doSet( &$class, &$property, $value) {
+		$object = null;
+		if ( !$property->isStatic() ) {
+			$object =& AjapReflector::getInstance( $class );
+		}
+		return $property->setValue( $object, $value );
+	}
+
+	public static function doCall( &$class, &$method, &$args ) {
+		$object = null;
+		if ( !$method->isStatic() ) {
+			$object =& AjapReflector::getInstance( $class );
+		}
+		return $method->invokeArgs( $object, $args );
+	}
+	
+	public static function dynamicDoGet( $class, $property ) {
+		AjapReflector::resolveProperty( $class, $property );
+		$object = null;
+		if ( !$property->isStatic() ) {
+			$object =& AjapReflector::getInstance( $class );
+		}
 		return $property->getValue($object);
 	}
 	
-	public static function doSet(&$class,&$property,$value) {
+	public static function dynamicDoSet( $class, $property, $value ) {
+		AjapReflector::resolveProperty( $class, $property );
 		$object = null;
-		if (!$property->isStatic()) $object =& AjapReflector::getInstance($class);
-		return $property->setValue($object,$value);
+		if ( !$property->isStatic() ) {
+			$object =& AjapReflector::getInstance( $class );
+		}
+		return $property->setValue( $object, $value );
 	}
 
-	public static function doCall(&$class,&$method,&$args) {
+	public static function dynamicDoCall( $class, $method, $args=FALSE ) {
+		if ( $args===FALSE ) {
+			$args = array();
+		}
+		AjapReflector::resolveMethod( $class, $method );
 		$object = null;
-		if (!$method->isStatic()) $object =& AjapReflector::getInstance($class);
-		return $method->invokeArgs($object,$args);
+		if ( !$method->isStatic() ) {
+			$object =& AjapReflector::getInstance( $class );
+		}
+		return $method->invokeArgs( $object, $args );
 	}
 	
-	public static function dynamicDoGet($class,$property) {
-		AjapReflector::resolveProperty($class,$property);
-		$object = null;
-		if (!$property->isStatic()) $object =& AjapReflector::getInstance($class);
-		return $property->getValue($object);
-	}
-	
-	public static function dynamicDoSet($class,$property,$value) {
-		AjapReflector::resolveProperty($class,$property);
-		$object = null;
-		if (!$property->isStatic()) $object =& AjapReflector::getInstance($class);
-		return $property->setValue($object,$value);
-	}
-
-	public static function dynamicDoCall($class,$method,$args=FALSE) {
-		if ($args===FALSE) $args = array();
-		AjapReflector::resolveMethod($class,$method);
-		$object = null;
-		if (!$method->isStatic()) $object =& AjapReflector::getInstance($class);
-		return $method->invokeArgs($object,$args);
-	}
-	
-	public static function isAjap($path,&$class) {
-		if ( $class->hasAnnotation("Ajap") ) {
-			if ( $class->getName()=="Ajap_Callbacks" ) {
-				return TRUE;
-			}
+	public static function isAjap( $path, &$class ) {
+		if ( $class->getAnnotation( "Ajap" ) ) {
 			$filename = $class->getFileName();
-			return AjapFileHelper::getModuleName($path,$filename)!==FALSE;
+			return AjapFileHelper::getModuleName( $path, $filename )!==FALSE;
 		}
 		return FALSE;
 	}
@@ -134,39 +143,49 @@ class AjapReflector {
 	 * @return FALSE if not a module, an array containing the classes if the
 	 * 		   the file is requested for the first time, an empty array otherwise
 	 */
-	public static function getClassesFrom($path,$modules) {
+	public static function getClassesFrom( $path, $modules ) {
 		
 		static $_included = array();
-		if (!isset($_included[$path])) {
-			$_included[$path] = array();
+		if ( !isset( $_included[ $path ] ) ) {
+			$_included[ $path ] = array();
 		}
-		$included =& $_included[$path];
+		$included =& $_included[ $path ];
 		
-		if (!is_array($modules)) $modules = array($modules);
+		if ( !is_array( $modules ) ) {
+			$modules = array($modules);
+		}
 		
 		$toInclude = array();
-		foreach ($modules as &$module) {
-			if (!isset($included[$module])) {
-				$tmp = AjapFileHelper::getFileName($path,$module);
-				if ($tmp!==FALSE) $toInclude[] = $tmp;
-				$included[$module] = true;
+		foreach ( $modules as &$module ) {
+			if ( !isset( $included[ $module ] ) ) {
+				$tmp = AjapFileHelper::getFileName( $path, $module );
+				if ( $tmp!==FALSE ) {
+					$toInclude[] = $tmp;
+				}
+				$included[ $module ] = true;
 			}
 		}
 		
-		if (count($toInclude)==0) return array();
+		if ( count( $toInclude )==0 ) {
+			return array();
+		}
 			
-		$startIndex = count(get_declared_classes());
+		$startIndex = count( get_declared_classes() );
 
-		foreach ($toInclude as &$file) require_once($file);
+		foreach ( $toInclude as &$file ) {
+			require_once($file);
+		}
 		
 		$classes = get_declared_classes();
-		$endIndex = count($classes);
+		$endIndex = count( $classes );
 		
 		$array = array();
-		for ($i=$startIndex; $i<$endIndex; $i++) {
-			$class =& AjapReflector::getReflectionClass($classes[$i]);
-			if ($class->hasAnnotation("Ajap")) $array[] =& $class;
-			unset($class); // To avoid problems with references
+		for ( $i=$startIndex; $i<$endIndex; $i++ ) {
+			$class =& AjapReflector::getReflectionClass( $classes[ $i ] );
+			if ( $class->getAnnotation("Ajap") ) {
+				$array[] =& $class;
+			}
+			unset( $class ); // To avoid problems with references
 		}
 		return $array;
 	}
