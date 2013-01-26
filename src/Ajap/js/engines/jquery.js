@@ -1,5 +1,3 @@
-(function( Ajap ) {
-
 //@include jsonp.min.js
 
 jQuery.extend( Ajap, {
@@ -42,5 +40,3 @@ jQuery.extend( Ajap, {
 		});
 	}
 });
-
-})( Ajap );

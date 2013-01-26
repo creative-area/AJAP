@@ -96,61 +96,63 @@ class AjapModuleWriter {
 		return $code."*/\n\n";
 	}
 	
-	private $ajapCoreFiles = null;
+	private $loadedFiles = null;
 	
 	/**
 	 * Gets Ajap Core code
 	 */
 	private function generateAjapCore() {
-		$isForCache = $this->options["isForCache"];
-		if (!$isForCache && !Ajap::isFirstLoad()) return "";
+		$isForCache = $this->options[ "isForCache" ];
+		if ( !$isForCache && !Ajap::isFirstLoad() ) {
+			return "";
+		}
 		
-		$newline = $this->options["nl"];
+		$newline = $this->options[ "nl" ];
 		
-		$code = $newline."if(!window.Ajap){".$newline;
-		
-		$dir = realpath(dirname(__FILE__)."/../js");
+		$dir = realpath( dirname(__FILE__) . "/../js" );
+
+		$main = "$dir/Ajap.js";
+		$code = file_get_contents( $main );
 		
 		$engine = $this->js_engine;
+		$engineSource = "$dir/engines/$engine.js";
 		
-		$this->ajapCoreFiles = array(
-			"$dir/Ajap.js",
-			"$dir/engines/$engine.js",
+		$extensionsCode = "";
+		$extensionsFiles = array(
 			"$dir/Ajap.Loader.js",
 			"$dir/Ajap.Net.js",
 			"$dir/Ajap.Style.js",
 		);
-		foreach ($this->ajapCoreFiles as &$file)
-    		$code .= file_get_contents($file).$newline;
-
-    	$code .= $newline."Ajap.URI=".json_encode($this->ajap_uri).";";
-	    
-    	$code .= "$newline}$newline$newline";
 		
-		$code = preg_replace_callback( "#^//@include\\s*(\\S*)\\s*$#m", function( $match ) use( $dir, $engine ) {
+		foreach ( $extensionsFiles as $file ) {
+    		$extensionsCode .= file_get_contents($file).$newline;
+		}
+		
+		$this->loadedFiles = array_merge( array( $main, $engineSource ), $extensionsFiles );
+		$loadedFiles =& $this->loadedFiles;
+		
+		$code = str_replace( "@URI", json_encode( $this->ajap_uri ), $code );
+		$code = str_replace( "//@engine", file_get_contents( $engineSource ), $code );
+		$code = str_replace( "//@extensions", $extensionsCode, $code );
+		$code = preg_replace_callback( "#^//@include\\s*(\\S*)\\s*$#m", function( $match ) use( $dir, $engine, &$loadedFiles ) {
 			$files = array(
 				"$dir/include/$match[1]",
 				"$dir/engines/$engine/$match[1]",
 			);
 			foreach( $files as $file ) {
 				if ( file_exists( $file ) ) {
+					$loadedFiles[] = $file;
 					return file_get_contents( $file ) . "\n";
 				}
 			}
 			throw new Exception( "Cannot include file $match[1]" );
 		}, $code );
 	    
-	    if ($this->options["js_packer"]!==FALSE) {
-			$code = call_user_func($this->options["js_packer"],$code);
+	    if ( $this->options[ "js_packer" ] !== false ) {
+			$code = call_user_func( $this->options[ "js_packer" ], $code );
 	    }
 		
-	    if ($isForCache) {
-			return '<?php if (Ajap::isFirstLoad()) { ?>'
-					.$code
-					.'<?php } ?>';
-		}
-		
-		return $code;
+		return $isForCache ? "<?php if (Ajap::isFirstLoad()) { ?>$code<?php } ?>" : $code;
 	}
 	
 	/**
@@ -266,7 +268,7 @@ class AjapModuleWriter {
 	public function &getLocalFilesLoaded() {
 		static $array = null;
 		if ($array==null) {
-			$array = $this->ajapCoreFiles;
+			$array = $this->loadeFiles;
 			foreach ($this->objectWriters as &$objectWriter) {
 				$array = array_merge($array,$objectWriter->getLocalFilesLoaded());
 			}

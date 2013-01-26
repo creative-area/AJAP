@@ -1,5 +1,3 @@
-(function( Ajap ) {
-
 var // List of style nodes
 	styleNodes = {},
 	// Current style node
@@ -36,5 +34,3 @@ Ajap.setCurrentStyleNodeId = function( styleNodeId ) {
 Ajap.addStyle = function( cssText ) {
 	addStyle( currentStyleNodeId, cssText );
 };
-
-})( Ajap );
