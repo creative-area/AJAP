@@ -125,7 +125,7 @@ class Ajap {
 			"compact" => false,
 			"css_packer" => false,
 			"encoding" => "utf-8",
-			"engine" => "jQuery",
+			"engine" => "jquery",
 			"execute_filter" => false,
 			"js_packer" => false,
 			"production_cache" => false,
