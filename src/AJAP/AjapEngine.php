@@ -149,9 +149,6 @@ class AjapEngine extends ConfigurableClass {
       // Is it Ajap?
       if (!AjapReflector::isAjap($this->getOption("path"),$class)) return;
       
-      // Ajap.Callbacks?
-      if ($class->getName()=="Ajap_Callbacks") return;
-  	
       // Handle dependencies
       if (( $tmp = $class->getAnnotation("DependsOn") )) {
       	$dependsOn = array();
@@ -307,9 +304,6 @@ class AjapEngine extends ConfigurableClass {
     // Utility array
     $alreadyDoneClasses = array();
     
-	// Add empty service callbacks
-    require_once dirname(__FILE__)."/Ajap_Callbacks.php";
-
     // Render classes
     $modules = explode(",",$module);
    	$classes = $this->getClassesFor($modules);
