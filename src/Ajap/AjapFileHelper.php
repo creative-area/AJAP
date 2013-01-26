@@ -1,25 +1,21 @@
 <?php
 
-require_once dirname(__FILE__)."/AjapStringHelper.php";
-
 class AjapFileHelper {
 	
 	public function resolveURI($uri,$base_uri,$base_dir) {
 		if ($uri===FALSE) return FALSE;
 		static $base_uri_root = array();
-		if (AjapStringHelper::startsWith($uri,'!')) {
+		if ( preg_match( "/^!/", $uri ) ) {
 			$uri = substr($uri,1);
-			if (AjapStringHelper::startsWith($uri,'/')
-				||	AjapStringHelper::startsWith($uri,"C:\\")
-				||	AjapStringHelper::startsWith($uri,"D:\\")
-				||	AjapStringHelper::startsWith($uri,"E:\\")
-				) // TODO: handle all drives
+			if ( preg_match( "#^(?:/|[a-z]\\:\\\\\\\\)#i", $uri ) ) {
 				return "!$uri";
+			}
 			return "!$base_dir".DIRECTORY_SEPARATOR.$uri;
 		}
-		if (AjapStringHelper::startsWith($uri,'http://') || AjapStringHelper::startsWith($uri,'https://'))
+		if ( preg_match( "#^https?//#", $uri ) ) {
 			return $uri;
-		if (AjapStringHelper::startsWith($uri,"/")) {
+		}
+		if ( preg_match( "#^/#", $uri ) ) {
 			if (!isset($base_uri_root[$base_uri])) {
 				$tmp = parse_url($base_uri);
 				$user_pass = "";
@@ -135,7 +131,7 @@ class AjapFileHelper {
 		$dir = dirname($filename);
 		$basename = basename($filename,".$extension");
 		foreach ($directories as &$directory) {
-			if (AjapStringHelper::startsWith($dir,$directory)) {
+			if ( substr( $dir, 0, strlen( $directory ) ) === $directory ) {
 				$tmp = substr($dir,strlen($directory)+1);
 				if ($tmp!="") $tmp .= ".";
 				$tmp = str_replace(DIRECTORY_SEPARATOR,".",$tmp).str_replace("_",".",$basename);

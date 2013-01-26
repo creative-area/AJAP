@@ -68,7 +68,9 @@ class AjapObjectWriter {
 		foreach ($lines as $line) {
 			$line = trim($line);
 			if ($line=="" || $line=="*") continue;
-			if (AjapStringHelper::startsWith($line,"*")) $line = substr($line,1);
+			if ( preg_match( "/^\\*/", $line ) ) {
+				$line = substr($line,1);
+			}
 			$out .= "//$line\n";
 		}
 		if ($out=="") return $emptyLine."\n";
@@ -218,7 +220,7 @@ class AjapObjectWriter {
 			}
 			$uri = AjapFileHelper::resolveURI($uri,'."'$this->s_base_uri','$this->s_base_dir'".');
 			if ($uri!==FALSE) {
-				$local = AjapStringHelper::startsWith($uri,"!");
+				$local = preg_match( "/^!/", $line );
 				if ('.$force.' || $local) {
 					if ($local) $uri = substr($uri,1);
 					$content = file_get_contents($uri);
@@ -235,7 +237,7 @@ class AjapObjectWriter {
 			}
 			$uri = AjapFileHelper::resolveURI($uri,$this->base_uri,$this->base_dir);
 			if ($uri!==FALSE) {
-				$local = AjapStringHelper::startsWith($uri,"!");
+				$local = preg_match( "/^!/", $line );
 				if ($this->forceInclude[$type] || $local) {
 					if ($local) {
 						$uri = substr($uri,1);

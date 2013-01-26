@@ -51,15 +51,15 @@ class Ajap {
 		$javascript = false;
 		foreach ( $pieces as $piece ) {
 			$trim = trim( $piece );
-			if ( AjapStringHelper::startsWith( $trim, "?" ) ) {
+			if ( preg_match( "/^\\?/", $trim ) ) {
 				$javascript=true;
 			}
 			if ( $javascript ) {
 				$piece = $trim;
 			}
-			if ($piece!='') {
-				if ($javascript) {
-					if (!AjapStringHelper::startsWith($piece,'?')) {
+			if ( $piece != '' ) {
+				if ( $javascript ) {
+					if ( !preg_match( "/^\\?/", $piece  ) ) {
 						if ( !$first ) {
 							$code .= "+";
 						} else {
@@ -196,7 +196,7 @@ class Ajap {
 		// Deal with CSS if needed
 		if (( $tmp = $class->getAnnotation( "CSS" ) )) {
 			foreach ( $tmp as $a ) {
-				if ( AjapStringHelper::startsWith( $a, "method:" ) ) {
+				if ( preg_match( "/^method:/", $a ) ) {
 					$methodName = substr( $a, 7 );
 					if ( !isset( $methods_to_ignore[ $methodName ] ) ) {
 						$writer->addCascadingStyleSheet( $class->getMethod( $methodName ) );
@@ -216,7 +216,7 @@ class Ajap {
 		// Deal with JS files
 		if (( $tmp = $class->getAnnotation( "JS" ) )) {
 			foreach ( $tmp as $a ) {
-				if ( AjapStringHelper::startsWith( $a, "method:" ) ) {
+				if ( preg_match( "/^method:/", $a ) ) {
 				$methodName = substr( $a, 7 );
 					if ( !isset( $methods_to_ignore[ $methodName ] ) ) {
 						$writer->addJavascript( $class->getMethod( $methodName ) );
