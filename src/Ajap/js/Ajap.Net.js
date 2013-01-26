@@ -18,7 +18,7 @@
 
 	Ajap.send = function ( moduleName, methodName, data, cache ) {
 		var url = Ajap.URI + ( /\?/.test( Ajap.URI )? '&' : '?' ) + 'execute=' + moduleName + ":" + methodName,
-			strData = Ajap.jsonEncode( data ),
+			strData = JSON.stringify( data ),
 			key, request;
 		if ( cache ) {
 			key = url + "/" + strData;
@@ -138,7 +138,7 @@
 			length = actual.length;
 			if ( length ) {
 				request = Ajap.ajax( Ajap.URI + ( /\?/.test( Ajap.URI )? '&' : '?' ) + 'getModule=' + actual.join( "," ) , "script", {
-					"__ajap__data": Ajap.jsonEncode(data),
+					"__ajap__data": JSON.stringify( data ),
 					"__ajap__already__loaded": loadedModulesString
 				});
 				for ( ; i < length; i++ ) {

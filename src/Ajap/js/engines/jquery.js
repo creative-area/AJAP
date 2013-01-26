@@ -1,9 +1,8 @@
 (function( Ajap ) {
 
-jQuery.extend( Ajap, {
+//@include jsonp.min.js
 
-	jsonEncode: jQuery.toJSON,
-	jsonDecode: jQuery.parseJSON,
+jQuery.extend( Ajap, {
 
 	ajax: function( url, dataType, data ) {
 		return jQuery.ajax({
@@ -21,14 +20,10 @@ jQuery.extend( Ajap, {
 	when: jQuery.when,
 
 	jsonp: function( url ) {
-		return $.Ajap.Engine.Deferred(function( defer ) {
-			jQuery.jsonp({
-				url: url,
-				success: defer.resolve,
-				error: defer.reject,
-				cache: true
-			});
-		}).promise();
+		return jQuery.jsonp({
+			url: url,
+			cache: true
+		});
 	},
 
 	serializeForm: function( formElement ) {

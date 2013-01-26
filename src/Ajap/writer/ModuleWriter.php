@@ -111,9 +111,11 @@ class AjapModuleWriter {
 		
 		$dir = realpath(dirname(__FILE__)."/../js");
 		
+		$engine = $this->js_engine;
+		
 		$this->ajapCoreFiles = array(
 			"$dir/Ajap.js",
-			"$dir/engines/$this->js_engine.js",
+			"$dir/engines/$engine.js",
 			"$dir/Ajap.Loader.js",
 			"$dir/Ajap.Net.js",
 			"$dir/Ajap.Style.js",
@@ -124,6 +126,19 @@ class AjapModuleWriter {
     	$code .= $newline."Ajap.URI=".json_encode($this->ajap_uri).";";
 	    
     	$code .= "$newline}$newline$newline";
+		
+		$code = preg_replace_callback( "#^//@include\\s*(\\S*)\\s*$#m", function( $match ) use( $dir, $engine ) {
+			$files = array(
+				"$dir/include/$match[1]",
+				"$dir/engines/$engine/$match[1]",
+			);
+			foreach( $files as $file ) {
+				if ( file_exists( $file ) ) {
+					return file_get_contents( $file ) . "\n";
+				}
+			}
+			throw new Exception( "Cannot include file $match[1]" );
+		}, $code );
 	    
 	    if ($this->options["js_packer"]!==FALSE) {
 			$code = call_user_func($this->options["js_packer"],$code);

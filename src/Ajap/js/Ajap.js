@@ -1,5 +1,7 @@
 (function($){
 
+//@include json3.min.js
+
 $.Ajap = {
 
 	// Merging properties of objects into a new one
