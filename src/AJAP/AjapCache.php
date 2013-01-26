@@ -9,7 +9,7 @@ class AjapCache {
 	/**
 	 * Constructor
 	 *
-	 * @param AjapEngine $engine
+	 * @param Ajap $engine
 	 * @param string $module
 	 */
 	public function __construct(&$engine,$module) {

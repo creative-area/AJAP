@@ -491,7 +491,7 @@ class AjapObjectWriter {
 			if ($this->hasDynamic) {
 				$require = "\n        require_once '".addslashes($this->class->getFileName())."';";
 			}
-			$code = "<?php if (!AjapEngine::isAlreadyLoaded('$module')) {".$require." ?>".$code."<?php } ?>";
+			$code = "<?php if (!Ajap::isAlreadyLoaded('$module')) {".$require." ?>".$code."<?php } ?>";
 		}
 		
 		return $code;

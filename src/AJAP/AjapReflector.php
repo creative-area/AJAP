@@ -33,7 +33,7 @@ class AjapReflector {
 		if ( $constructor->getAnnotation("Implicit") ) {
 			$constructorParams =& $constructor->getParameters();
 			foreach ( $constructorParams as &$constructorParam ) {
-				array_push( $params, AjapEngine::getImplicit( $constructorParam->getName() ) );
+				array_push( $params, Ajap::getImplicit( $constructorParam->getName() ) );
 			}
 		}
 		return $params;

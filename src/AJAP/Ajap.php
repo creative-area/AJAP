@@ -7,40 +7,40 @@ require_once dirname(__FILE__)."/AjapTemplate.php";
 
 require_once dirname(__FILE__)."/writer/ModuleWriter.php";
 
-class AjapEngine {
+class Ajap {
 	
   /**
-   * @var AjapEngine
+   * @var Ajap
    */
   private static $currentEngine = null;
 	
   public static function require_module($module) {
-  	if (AjapEngine::$currentEngine==null) throw new Exception("AjapEngine::require: No engine running");
-  	$file = AjapFileHelper::getFileName(AjapEngine::$currentEngine->getOption("path"),$module);
-  	if ($file==FALSE) throw new Exception("AjapEngine::require: Cannot find module '$module'");
+  	if (Ajap::$currentEngine==null) throw new Exception("Ajap::require: No engine running");
+  	$file = AjapFileHelper::getFileName(Ajap::$currentEngine->getOption("path"),$module);
+  	if ($file==FALSE) throw new Exception("Ajap::require: Cannot find module '$module'");
   	require_once($file);
   }
 	
   private static $alreadyLoaded = array();
   
   public static function isAlreadyLoaded($name) {
-  	return isset(AjapEngine::$alreadyLoaded[$name]);
+  	return isset(Ajap::$alreadyLoaded[$name]);
   }
   
   public static function isFirstLoad() {
-  	return count(AjapEngine::$alreadyLoaded)==0;
+  	return count(Ajap::$alreadyLoaded)==0;
   }
   
   private $_isRenderingModule = false;
   
   public static function isRenderingModule() {
-  	return AjapEngine::$currentEngine!==null && AjapEngine::$currentEngine->_isRenderingModule;
+  	return Ajap::$currentEngine!==null && Ajap::$currentEngine->_isRenderingModule;
   }
   
   private static $implicit = array();
   
   public static function getImplicit($name) {
-  	return isset(AjapEngine::$implicit[$name])?AjapEngine::$implicit[$name]:null;
+  	return isset(Ajap::$implicit[$name])?Ajap::$implicit[$name]:null;
   }
   
 	public static function transformTemplate($str,$separator="##") {
@@ -67,8 +67,8 @@ class AjapEngine {
 							else $first = false;
 							$test = trim($subexpr[0]);
 							if ($test=='') $test='true';
-							$then = AjapEngine::transformTemplate($subexpr[1],"@@");
-							$else = (count($subexpr)>2)?AjapEngine::transformTemplate($subexpr[2],"@@"):'""';
+							$then = Ajap::transformTemplate($subexpr[1],"@@");
+							$else = (count($subexpr)>2)?Ajap::transformTemplate($subexpr[2],"@@"):'""';
 							$code .= "(($test)?($then):($else))";
 						}
 					}
@@ -274,12 +274,12 @@ class AjapEngine {
   public function renderModule($module,$moduleData=array(),$alreadyLoaded=array()) {
   	
 	// Set as current engine
-  	AjapEngine::$currentEngine =& $this;
+  	Ajap::$currentEngine =& $this;
   	$this->_isRenderingModule = true;
   	
   	// Set global variable
-    AjapEngine::$implicit = (is_array($moduleData)) ? $moduleData : array();
-    AjapEngine::$alreadyLoaded = 
+    Ajap::$implicit = (is_array($moduleData)) ? $moduleData : array();
+    Ajap::$alreadyLoaded = 
     	(is_array($alreadyLoaded) && count($alreadyLoaded)>0)
     	?array_fill_keys($alreadyLoaded,true)
     	:array();
@@ -355,7 +355,7 @@ class AjapEngine {
   private static $pear_errors_to_ignore = array(512,2048);
   
   public static function errorHandler($code,$msg,$filename,$linenum) {
-    if (array_search($code,AjapEngine::$pear_errors_to_ignore)===FALSE)
+    if (array_search($code,Ajap::$pear_errors_to_ignore)===FALSE)
       throw new Exception("$msg ($code) <in '$filename' at line $linenum>");
   }
 
@@ -374,10 +374,10 @@ class AjapEngine {
   public function execute($action,$data,$callback = FALSE) {
 
   	// Set current engine
-  	AjapEngine::$currentEngine =& $this;
+  	Ajap::$currentEngine =& $this;
   	$this->_renderingModule = false;
 
-    set_error_handler(array("AjapEngine","errorHandler"));
+    set_error_handler(array("Ajap","errorHandler"));
     
     try {
     	
@@ -437,16 +437,16 @@ class AjapEngine {
       		$data = array_slice($data,0,-count($implicit));
       		
       		// Set global array in case the constructor need the data
-      		AjapEngine::$implicit = array();
+      		Ajap::$implicit = array();
       		$i=0;
       		foreach ($implicit as $name => $_)
-      			AjapEngine::$implicit[$name] = $implicit_values[$i++];
+      			Ajap::$implicit[$name] = $implicit_values[$i++];
 
       		// Set properties
       		foreach ($order as $name)
-      			AjapReflector::doSet($class,$implicit[$name],AjapEngine::$implicit[$name]);
+      			AjapReflector::doSet($class,$implicit[$name],Ajap::$implicit[$name]);
       } else {
-      	AjapEngine::$implicit = array();
+      	Ajap::$implicit = array();
       }
 
       $method = $class->getMethod($methodName);

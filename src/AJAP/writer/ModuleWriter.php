@@ -53,7 +53,7 @@ class AjapModuleWriter {
 	
 	/**
 	 * Initiating engine
-	 * @param AjapEngine $engine
+	 * @param Ajap $engine
 	 */
 	public function __construct(&$engine) {
 		$this->options = array();
@@ -103,7 +103,7 @@ class AjapModuleWriter {
 	 */
 	private function generateAjapCore() {
 		$isForCache = $this->options["isForCache"];
-		if (!$isForCache && !AjapEngine::isFirstLoad()) return "";
+		if (!$isForCache && !Ajap::isFirstLoad()) return "";
 		
 		$newline = $this->options["nl"];
 		
@@ -130,7 +130,7 @@ class AjapModuleWriter {
 	    }
 		
 	    if ($isForCache) {
-			return '<?php if (AjapEngine::isFirstLoad()) { ?>'
+			return '<?php if (Ajap::isFirstLoad()) { ?>'
 					.$code
 					.'<?php } ?>';
 		}
