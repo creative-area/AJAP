@@ -1,7 +1,5 @@
 <?php
 
-require_once dirname(__FILE__)."/../ConfigurableClass.php"; // TODO: remove dependency
-
 require_once dirname(__FILE__)."/AjapReflector.php";
 require_once dirname(__FILE__)."/AjapCache.php";
 require_once dirname(__FILE__)."/AjapException.php";
@@ -9,7 +7,7 @@ require_once dirname(__FILE__)."/AjapTemplate.php";
 
 require_once dirname(__FILE__)."/writer/ModuleWriter.php";
 
-class AjapEngine extends ConfigurableClass {
+class AjapEngine {
 	
   /**
    * @var AjapEngine
@@ -95,24 +93,31 @@ class AjapEngine extends ConfigurableClass {
   public function resetOptions() {
     global $_SERVER;
     $this->forceOptions(array());
-    $this->setOption("base_uri",AjapFileHelper::PHP_SELF_dirname());
-    $this->setOption("base_dir",dirname($_SERVER["SCRIPT_FILENAME"]));
-    $this->setOption("cache",FALSE);
-    $this->setOption("compact",FALSE);
-    $this->setOption("css_packer",FALSE);
-    $this->setOption("encoding","utf-8");
-    $this->setOption("engine","jQuery");
-    $this->setOption("execute_filter",FALSE);
-    $this->setOption("js_packer",FALSE);
-    $this->setOption("production_cache",FALSE);
-    $this->setOption("render_filter",FALSE);
-    $this->setOption("session",array());
-    $this->setOption("uri",$_SERVER['PHP_SELF']);
-    $this->setOption("path",dirname($_SERVER["SCRIPT_FILENAME"]));
   }
 
-  public function __construct($options=NULL) {
-    parent::__construct($options);
+  private $options;
+  
+  public function getOption( $name ) {
+  	return isset( $this->options[ $name ] ) ? $this->options[ $name ] : NULL;
+  }
+  
+  public function __construct( $options=NULL ) {
+  	$this->options = ( is_array( $options ) ? $options : array() ) + array(
+    	"base_uri" => AjapFileHelper::PHP_SELF_dirname(),
+    	"base_dir" => dirname($_SERVER["SCRIPT_FILENAME"]),
+    	"cache" => FALSE,
+    	"compact" => FALSE,
+    	"css_packer" => FALSE,
+    	"encoding" => "utf-8",
+    	"engine" => "jQuery",
+    	"execute_filter" => FALSE,
+    	"js_packer" => FALSE,
+    	"production_cache" => FALSE,
+    	"render_filter" => FALSE,
+    	"session" => array(),
+    	"uri" => $_SERVER['PHP_SELF'],
+    	"path" => dirname($_SERVER["SCRIPT_FILENAME"])
+	);
   }
   
   private function getModuleFileName($module) {
