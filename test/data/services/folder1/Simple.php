@@ -13,9 +13,33 @@ class Simple {
 	private $prop3 = "php only";
 	
 	/**
+	 * @Local
+	 */
+	public $prop4 = "php only";
+	
+	private function phpMethod() {
+	}
+	
+	/**
+	 * @Local
+	 */
+	public function phpMethod2() {
+	}
+	
+	/**
 	 * @Dynamic
 	 */
 	public $dynamic;
+	
+	/**
+	 * @JS
+	 * @Dynamic
+	 */
+	public function dynamicMethod() {
+		return '
+		return ' . json_encode( microtime( true ) ) . ';
+		';
+	}
 	
 	/**
 	 * @Implicit
