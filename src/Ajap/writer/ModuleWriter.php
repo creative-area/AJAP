@@ -119,6 +119,7 @@ class AjapModuleWriter {
 		
 		$extensionsCode = "";
 		$extensionsFiles = array(
+			"$dir/core.js",
 			"$dir/loader.js",
 			"$dir/net.js",
 			"$dir/style.js",
