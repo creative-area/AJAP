@@ -7,7 +7,7 @@ class AjapFileHelper {
 		static $base_uri_root = array();
 		if ( preg_match( "/^!/", $uri ) ) {
 			$uri = substr($uri,1);
-			if ( preg_match( "#^(?:/|[a-z]\\:\\\\\\\\)#i", $uri ) ) {
+			if ( preg_match( "#^(?:/|[a-z]\\:\\\\)#i", $uri ) ) {
 				return "!$uri";
 			}
 			return "!$base_dir".DIRECTORY_SEPARATOR.$uri;
