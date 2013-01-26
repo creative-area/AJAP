@@ -34,7 +34,7 @@ class AjapFileHelper {
 		return $base_uri."/".$uri;
 	}
 
-	public static function safe_dirname($path) {
+	private static function safe_dirname($path) {
 		$dirname = dirname($path);
    		return ($dirname=='/') ? '' : $dirname;
 	}
