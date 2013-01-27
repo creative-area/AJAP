@@ -1,30 +1,38 @@
 module( "simple" );
 
-test( "alias", function() {
+test( "@Alias", function() {
 	expect( 1 );
 	strictEqual( Simple, SimpleAlias, "alias is created" );
 });
 
-test( "properties", function() {
-	expect( 9 );
+test( "@Local", function() {
+	expect( 2 );
+	ok( !Simple.hasOwnProperty( "$prop4" ), "local prop not serialized" );
+	ok( !Simple.hasOwnProperty( "phpMethod2" ), "local method not generated" );
+});
+
+test( "generated", function() {
+	expect( 4 );
 	strictEqual( Simple.$prop, "hello", "prop initialized OK" );
 	strictEqual( Simple.$prop2, "world", "prop initialized in constructor OK" );
-	ok( !Simple.hasOwnProperty( "$prop3" ), "private prop not serialized" );
-	ok( !Simple.hasOwnProperty( "$prop4" ), "local prop not serialized" );
-	ok( !Simple.hasOwnProperty( "phpMethod" ), "private method not generated" );
-	ok( !Simple.hasOwnProperty( "phpMethod2" ), "local method not generated" );
-	ok( !Simple.hasOwnProperty( "init" ), "init is not generated as a method" );
 	ok( Simple.hasOwnProperty( "$implicit" ), "implicit is generated" );
 	ok( Simple.$dynamic, "dynamic prop set" );
 });
 
-test( "javascript", function() {
-	expect( 2 );
-	strictEqual( Simple.javascript( 5 ), 10 );
-	strictEqual( Simple.javascript( 2 ), 4 );
+test( "not generated", function() {
+	expect( 3 );
+	ok( !Simple.hasOwnProperty( "$prop3" ), "private prop not serialized" );
+	ok( !Simple.hasOwnProperty( "phpMethod" ), "private method not generated" );
+	ok( !Simple.hasOwnProperty( "init" ), "init is not generated as a method" );
 });
 
-test( "php", function() {
+test( "@JS (method)", function() {
+	expect( 2 );
+	strictEqual( Simple.javascript( 5 ), 10, "5 * 2 = 10" );
+	strictEqual( Simple.javascript( 2 ), 4, "2 * 2 = 4" );
+});
+
+test( "remote method", function() {
 	expect( 3 );
 	stop();
 	$.when( Simple.php( 5 ), Simple.php( 2 ) ).done(function( ten, four ) {
@@ -37,7 +45,7 @@ test( "php", function() {
 	});
 });
 
-test( "dynamic", function() {
+test( "@Dynamic", function() {
 	expect( 5 );
 	stop();
 	var dynamic = Simple.$dynamic,
@@ -52,7 +60,7 @@ test( "dynamic", function() {
 	});
 });
 
-test( "implicit", function() {
+test( "@Implicit", function() {
 	expect( 1 );
 	stop();
 	Simple.$implicit = "implicit";
@@ -71,7 +79,7 @@ test( "error", function() {
 	});
 });
 
-test( "AjapPost", function() {
+test( "@Post", function() {
 	expect( 1 );
 	stop();
 	var form = jQuery( "<form>" ).append( $( "<input name='my-input'>" ).val( "my-value" ) )[ 0 ];
@@ -79,5 +87,13 @@ test( "AjapPost", function() {
 		strictEqual( value, "my-value", "form properly serialized" );
 		start();
 	});
+});
 
+test( "@Volatile", function() {
+	expect( 3 );
+	stop();
+	Ajap.loadModule( "Simple.Volatile" ).done(function() {
+		ok( !( Simple.hasOwnProperty( "Volatile" ) ), "Volatile is not in Simple after init" );
+		start();
+	});
 });
