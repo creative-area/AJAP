@@ -1,4 +1,6 @@
+if ( !jQuery.jsonp ) {
 //@include jsonp.min.js
+}
 
 jQuery.extend( Ajap, {
 
