@@ -1,7 +1,7 @@
 <?php
 
+require_once dirname( __FILE__ ) . "/utils.php";
 require_once dirname( __FILE__ ) . "/AjapAnnotations.php";
-require_once dirname( __FILE__ ) . "/AjapFileHelper.php";
 
 class AjapReflector {
 	
@@ -122,11 +122,7 @@ class AjapReflector {
 	}
 	
 	public static function isAjap( $path, &$class ) {
-		if ( $class->getAnnotation( "Ajap" ) ) {
-			$filename = $class->getFileName();
-			return AjapFileHelper::getModuleName( $path, $filename )!==FALSE;
-		}
-		return FALSE;
+		return !!$class->getAnnotation( "Ajap" ) && ajap_inPath( $path, $class->getFileName() );
 	}
 
 	/**
@@ -158,7 +154,7 @@ class AjapReflector {
 		$toInclude = array();
 		foreach ( $modules as &$module ) {
 			if ( !isset( $included[ $module ] ) ) {
-				$tmp = AjapFileHelper::getFileName( $path, $module );
+				$tmp = ajap_moduleFile( $path, $module );
 				if ( $tmp!==FALSE ) {
 					$toInclude[] = $tmp;
 				}

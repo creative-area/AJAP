@@ -15,7 +15,7 @@ class Ajap {
 		if ( Ajap::$currentEngine==null ) {
 			throw new Exception("Ajap::require: No engine running");
 		}
-		$file = AjapFileHelper::getFileName( Ajap::$currentEngine->getOption( "path" ), $module );
+		$file = ajap_moduleFile( Ajap::$currentEngine->getOption( "path" ), $module );
 		if ( $file === false ) {
 			throw new Exception( "Ajap::require: Cannot find module $module" );
 		}
@@ -118,8 +118,15 @@ class Ajap {
 
 	public function __construct( $options = null ) {
 		global $_SERVER;
+		$url = dirname( $_SERVER[ "PHP_SELF" ] );
+		if ( $url === "/" ) {
+			$url = "";
+		}
+		$url = ( isset( $_SERVER[ "HTTPS" ] ) ? ( $_SERVER[ "HTTPS" ] == "on" ? "https://" : "http://" ) : "" )
+			. ( isset( $_SERVER[ "HTTP_HOST" ] ) ? $_SERVER[ "HTTP_HOST" ] : "" )
+			. $url;
 		$this->options = ( is_array( $options ) ? $options : array() ) + array(
-			"base_uri" => AjapFileHelper::PHP_SELF_dirname(),
+			"base_uri" => $url,
 			"base_dir" => dirname($_SERVER["SCRIPT_FILENAME"]),
 			"cache" => false,
 			"compact" => false,
@@ -134,18 +141,6 @@ class Ajap {
 			"uri" => $_SERVER['PHP_SELF'],
 			"path" => dirname($_SERVER["SCRIPT_FILENAME"])
 		);
-	}
-
-	private function getModuleFileName( $module ) {
-		return AjapFileHelper::getFileName( $this->getOption( "path" ), $module );
-	}
-
-	private function getModuleName( $filename ) {
-		return AjapFileHelper::getModuleName( $this->getOption( "path" ), $module );
-	}
-
-	private function getCSSFileName( $module ) {
-		return AjapFileHelper::getFileName( $this->getOption( "path" ), $module, "css" );
 	}
 
 	private function getClassesFor( $modules ) {
@@ -352,9 +347,7 @@ class Ajap {
 		// Footer with timing report
 		$generationDelay = microtime( true ) - $afterInspectionTime;
 		$footer = "\n// Classes inspected in $inspectionDelay seconds\n"
-			."// Module generated in $generationDelay seconds\n"
-			."// FileHelper cache usage " . AjapFileHelper::$cacheUse . "/" . AjapFileHelper::$use . "\n"
-			."// Reflector  cache usage " . AjapReflector::$cacheUse . "/" . AjapReflector::$use . "\n";
+			."// Module generated in $generationDelay seconds\n";
 
 		// Header
 		$header = "// Module '$module' \n"
@@ -427,11 +420,11 @@ class Ajap {
 
 			list( $module, $methodName ) = $executeElements;
 
-			$className = implode( "_" , explode( "." , $module ) );
+			$className = str_replace( "." , "_", $module );
 
 			// Find file for the module
-			$filename = $this->getModuleFileName( $module );
-			if ( $filename == "" ) {
+			$filename = ajap_moduleFile( $this->getOption( "path" ), $module );
+			if ( !$filename ) {
 				throw new Exception( "Unable to find module '$module'" );
 			}
 

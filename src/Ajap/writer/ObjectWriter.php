@@ -218,7 +218,7 @@ class AjapObjectWriter {
 				$blocking = "!";
 				$uri = substr($uri,1);
 			}
-			$uri = AjapFileHelper::resolveURI($uri,'."'$this->s_base_uri','$this->s_base_dir'".');
+			$uri = ajap_resolveURI($uri,'."'$this->s_base_uri','$this->s_base_dir'".');
 			if ($uri!==FALSE) {
 				$local = preg_match( "/^!/", $line );
 				if ('.$force.' || $local) {
@@ -235,7 +235,7 @@ class AjapObjectWriter {
 				$blocking = "!";
 				$uri = substr($uri,1);
 			}
-			$uri = AjapFileHelper::resolveURI($uri,$this->base_uri,$this->base_dir);
+			$uri = ajap_resolveURI($uri,$this->base_uri,$this->base_dir);
 			if ($uri!==FALSE) {
 				$local = preg_match( "/^!/", $line );
 				if ($this->forceInclude[$type] || $local) {
@@ -274,9 +274,9 @@ class AjapObjectWriter {
 		$dynamic = $this->isForCache && $method->getAnnotation("Dynamic");
 		if ($dynamic) {
 			$this->hasDynamic = true;
-			$uri = 'AjapFileHelper::resolveURI(AjapReflector::dynamicDoCall("'.$this->realClassName.'","'.$method->getName().'"),"'.$this->base_uri.'","'.$this->base_dir.'")';
+			$uri = 'ajap_resolveURI(AjapReflector::dynamicDoCall("'.$this->realClassName.'","'.$method->getName().'"),"'.$this->base_uri.'","'.$this->base_dir.'")';
 		} else {
-			$uri = AjapFileHelper::resolveURI(AjapReflector::doCall($this->class,$method,$params),$this->base_uri,$this->base_dir);
+			$uri = ajap_resolveURI(AjapReflector::doCall($this->class,$method,$params),$this->base_uri,$this->base_dir);
 		}
 		
 		return $this->generateURI($type,$uri,$dynamic);
@@ -368,11 +368,7 @@ class AjapObjectWriter {
 			array_unshift($tmp,"form");
 			$this->_implicits_post = "[".implode(",",$tmp)."]";
 
-			// Yes, having to create variables because of a dumb as fuck "strict standard"
-			// is so much fun, welcome to interpreters as they were in the 80s: COBOL-style
-			$module = $this->module_path;
-			$filename = $this->class->getFileName();
-			$this->_module = AjapFileHelper::getModuleName($module,$filename);
+			$this->_module = str_replace( "_", ".", $this->class->getName() ); 
 		}
 		
 		$name = $method->getName();
@@ -477,10 +473,7 @@ class AjapObjectWriter {
 	 */
 	private function generateEncapsulate($code) {
 		
-		// Yes, having to create variables because of a dumb as fuck "strict standard"
-		// is so much fun, welcome to interpreters as they were in the 80s: COBOL-style
-		$filename = $this->class->getFileName();
-		$module = AjapFileHelper::getModuleName($this->module_path,$filename);
+		$module = str_replace( "_", ".", $this->class->getName() );
 		
 		$setLoaded = "!Ajap._classIsLoaded('$module')";
 		
