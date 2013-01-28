@@ -153,14 +153,12 @@ class AjapAnnotations {
 
 class AjapClass extends ReflectionClass {
 
-	private static $cache = array();
-
-	public static function &get( &$class ) {
-		$key = is_string( $class ) ? $class : $class->getName();
-		if ( !isset( AjapClass::$cache[ $key ] ) ) {
-			AjapClass::$cache[ $key ] = new AjapClass( $class );
+	public static function &get( $class ) {
+		static $cache = array();
+		if ( !isset( $cache[ $class ] ) ) {
+			$cache[ $class ] = new AjapClass( $class );
 		}
-		return AjapClass::$cache[ $key ];
+		return $cache[ $class ];
 	}
 
 	private $annotations;
@@ -248,14 +246,13 @@ class AjapClass extends ReflectionClass {
 
 class AjapMethod extends ReflectionMethod {
 
-	private static $cache = array();
-
 	public static function &get( $class, $name ) {
+		static $cache = array();
 		$key = "$class/$name";
-		if ( !isset( AjapMethod::$cache[ $key ] ) ) {
-			AjapMethod::$cache[ $key ] = new AjapMethod( $class, $name );
+		if ( !isset( $cache[ $key ] ) ) {
+			$cache[ $key ] = new AjapMethod( $class, $name );
 		}
-		return AjapMethod::$cache[ $key ];
+		return $cache[ $key ];
 	}
 
 	private $annotations;
@@ -281,14 +278,13 @@ class AjapMethod extends ReflectionMethod {
 
 class AjapProperty extends ReflectionProperty {
 
-	private static $cache = array();
-
 	public static function &get( $class, $name ) {
+		static $cache = array();
 		$key = "$class/$name";
-		if ( !isset( AjapProperty::$cache[ $key ] ) ) {
-			AjapProperty::$cache[ $key ] = new AjapProperty( $class, $name );
+		if ( !isset( $cache[ $key ] ) ) {
+			$cache[ $key ] = new AjapProperty( $class, $name );
 		}
-		return AjapProperty::$cache[ $key ];
+		return $cache[ $key ];
 	}
 
 	private $annotations;
