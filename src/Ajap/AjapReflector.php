@@ -111,10 +111,6 @@ class AjapReflector {
 		return $method->invokeArgs( $object, $args );
 	}
 	
-	public static function isAjap( $path, &$class ) {
-		return !!$class->getAnnotation( "Ajap" ) && ajap_inPath( $path, $class->getFileName() );
-	}
-
 	/**
 	 * All right, so php sucks dry
 	 * When you require_once a file with require_once inside,

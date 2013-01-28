@@ -65,6 +65,10 @@ function ajap_inPath( $path, $filename ) {
 	return false;
 }
 
+function ajap_isAjap( $path, &$class ) {
+	return !!$class->getAnnotation( "Ajap" ) && ajap_inPath( $path, $class->getFileName() );
+}
+
 function ajap_moduleFile( $path, $module, $extension = "php" ) {
 	static $cache = array();
 	if ( !isset( $cache[ $path ] ) ) {

@@ -101,7 +101,7 @@ class Ajap {
 		$alreadyDone[ $class->getName() ] = true;
 	  
 		// Is it Ajap?
-		if ( !AjapReflector::isAjap( $this->getOption("path"), $class ) ) {
+		if ( !ajap_isAjap( $this->getOption("path"), $class ) ) {
 			return;
 		}
 

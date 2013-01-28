@@ -528,7 +528,7 @@ class AjapObjectWriter {
 		$tmp = $this->class->getParentClass();
 		$super = FALSE;
 		while (is_object($tmp))  {
-			if (AjapReflector::isAjap($this->module_path,$tmp) && !$tmp->getAnnotation("Volatile")) {
+			if (ajap_isAjap($this->module_path,$tmp) && !$tmp->getAnnotation("Volatile")) {
 				$name = $tmp->getName();
 				$this->_checkSuper[$name]=true;
 				if ($super===FALSE) $super = $name;
