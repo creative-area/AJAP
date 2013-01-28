@@ -6,6 +6,7 @@ require_once( "Ajap.php" );
 $ajap = new Ajap(array(
 	"path" => realpath( "./data/services/folder1" ) . PATH_SEPARATOR . realpath( "./data/services/folder2" ),
 	"compact" => true,
+	"cache" => realpath( "./cache" ),
 ));
 
 $ajap->handleRequest();

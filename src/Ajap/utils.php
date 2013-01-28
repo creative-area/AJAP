@@ -138,7 +138,7 @@ function ajap_compact( $content ) {
 	// Protect important whitespace (strings, keywords, etc )
 	$strings = array();
 
-	$content = preg_replace_callback( "/'(?:\\\\\\\\|\\\\'|[^'])*'|\"(?:\\\\\\\\|\\\\\"|[^\"])*\"|(?:\\sin|delete|function|var|typeof|void|return|else|new)\\s+[^\\{\\(]/", function( $match ) use ( &$strings ) {
+	$content = preg_replace_callback( "/<\\?php([^\\?]|\\?[^>])*\\?>|'(?:\\\\\\\\|\\\\'|[^'])*'|\"(?:\\\\\\\\|\\\\\"|[^\"])*\"|(?:\\sin|delete|function|var|typeof|void|return|else|new)\\s+[^\\{\\(\\[]/", function( $match ) use ( &$strings ) {
 		$match = $match[ 0 ];	
 		$firstChar = substr( $match, 0, 1 );
 		if ( $firstChar != "'" && $firstChar != '"' ) {

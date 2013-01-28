@@ -260,7 +260,7 @@ class AjapModuleWriter {
 	public function &getLocalFilesLoaded() {
 		static $array = null;
 		if ($array==null) {
-			$array = $this->loadeFiles;
+			$array = $this->loadedFiles;
 			foreach ($this->objectWriters as &$objectWriter) {
 				$array = array_merge($array,$objectWriter->getLocalFilesLoaded());
 			}
