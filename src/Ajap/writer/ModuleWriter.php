@@ -169,17 +169,16 @@ class AjapModuleWriter {
 	 */
 	private function checkCurrent() {
 		if ($this->currentObjectWriter==null)
-			throw new AjapWriterException("Wrong State");
+			throw new Exception("AjapWriter: Wrong State");
 	}
 	
 	/**
 	 * Starts a class
 	 * @param ReflectionAnnotatedClass $class the class
-	 * @throws AjapWriterException
 	 */
 	public function openClass(&$class) {
 		if ($this->currentObjectWriter!=null)
-			throw new AjapWriterException("Wrong State");
+			throw new Exception("AjapWriter: Wrong State");
 		$index = count($this->objectWriters);
 		$this->objectWriters[$index] = new AjapObjectWriter($class,$this->options);
 		$this->currentObjectWriter =& $this->objectWriters[$index];
@@ -187,7 +186,6 @@ class AjapModuleWriter {
 	
 	/**
 	 * Closes current class
-	 * @throws AjapWriterException
 	 */
 	public function closeClass() {
 		$this->checkCurrent();
@@ -198,7 +196,6 @@ class AjapModuleWriter {
 	/**
 	 * Adds an alias
 	 * @param string $toAdd alias
-	 * @throws AjapWriterException
 	 * @return null
 	 */
 	public function addAlias(&$toAdd) {
@@ -209,7 +206,6 @@ class AjapModuleWriter {
 	/**
 	 * Adds cascading style sheet
 	 * @param mixed $toAdd uri string or method
-	 * @throws AjapWriterException
 	 * @return null
 	 */
 	public function addCascadingStyleSheet(&$toAdd) {
@@ -220,7 +216,6 @@ class AjapModuleWriter {
 	/**
 	 * Adds javascript
 	 * @param mixed $toAdd uri string or method
-	 * @throws AjapWriterException
 	 * @return null
 	 */
 	public function addJavascript(&$toAdd) {
@@ -231,7 +226,6 @@ class AjapModuleWriter {
 	/**
 	 * Adds initialization javascript
 	 * @param ReflectionAnnotatedMethod $toAdd method
-	 * @throws AjapWriterException
 	 * @return null
 	 */
 	public function addInitializationJavascript(&$toAdd) {
@@ -242,7 +236,6 @@ class AjapModuleWriter {
 	/**
 	 * Adds property
 	 * @param ReflectionAnnotatedProperty $toAdd property
-	 * @throws AjapWriterException
 	 * @return null
 	 */
 	public function addProperty(&$toAdd) {
@@ -253,7 +246,6 @@ class AjapModuleWriter {
 	/**
 	 * Adds method
 	 * @param ReflectionAnnotatedMethod $toAdd method
-	 * @throws AjapWriterException
 	 * @return null
 	 */
 	public function addMethod(&$toAdd) {
@@ -263,7 +255,6 @@ class AjapModuleWriter {
 
 	/**
 	 * Get local files loaded
-	 * @throws AjapWriterException
 	 * @return array of realpath
 	 */
 	public function &getLocalFilesLoaded() {
@@ -282,7 +273,6 @@ class AjapModuleWriter {
 
 	/**
 	 * Returns resulting string
-	 * @throws AjapWriterException
 	 * @return string
 	 */
 	public function &getResultingString() {

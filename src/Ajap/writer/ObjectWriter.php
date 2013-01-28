@@ -1,7 +1,5 @@
 <?php
 
-require_once dirname(__FILE__)."/WriterException.php";
-
 /**
  * Some constants
  */
@@ -160,7 +158,7 @@ class AjapObjectWriter {
 			case OBJECT_WRITER_CSS: return $this->generateCSSCode($code,$isPHP);
 			case OBJECT_WRITER_JS: return $this->generateJSCode($code,$isPHP);
 			default:
-				throw new AjapWriterException("Unknown type '$type'");
+				throw new Exception("AjapWriter: Unknown type '$type'");
 		}
 	}
 
@@ -687,7 +685,6 @@ class AjapObjectWriter {
 	/**
 	 * Adds an alias
 	 * @param string $toAdd alias
-	 * @throws AjapWriterException
 	 * @return null
 	 */
 	public function addAlias(&$toAdd) {
@@ -697,7 +694,6 @@ class AjapObjectWriter {
 	/**
 	 * Adds cascading style sheet
 	 * @param mixed $toAdd uri string or method
-	 * @throws AjapWriterException
 	 * @return null
 	 */
 	public function addCascadingStyleSheet(&$toAdd) {
@@ -708,7 +704,6 @@ class AjapObjectWriter {
 	/**
 	 * Adds javascript
 	 * @param mixed $toAdd uri string or method
-	 * @throws AjapWriterException
 	 * @return null
 	 */
 	public function addJavascript(&$toAdd) {
@@ -719,7 +714,6 @@ class AjapObjectWriter {
 	/**
 	 * Adds initialization javascript
 	 * @param ReflectionAnnotatedMethod $toAdd method
-	 * @throws AjapWriterException
 	 * @return null
 	 */
 	public function addInitializationJavascript(&$toAdd) {
@@ -729,7 +723,6 @@ class AjapObjectWriter {
 	/**
 	 * Adds property
 	 * @param ReflectionAnnotatedProperty $toAdd property
-	 * @throws AjapWriterException
 	 * @return null
 	 */
 	public function addProperty(&$toAdd) {
@@ -741,7 +734,6 @@ class AjapObjectWriter {
 	/**
 	 * Adds method
 	 * @param ReflectionAnnotatedMethod $toAdd method
-	 * @throws AjapWriterException
 	 * @return null
 	 */
 	public function addMethod(&$toAdd) {
@@ -752,7 +744,6 @@ class AjapObjectWriter {
 
 	/**
 	 * Get local files loaded
-	 * @throws AjapWriterException
 	 * @return array of realpath
 	 */
 	public function &getLocalFilesLoaded() {
@@ -765,7 +756,6 @@ class AjapObjectWriter {
 
 	/**
 	 * Returns resulting string
-	 * @throws AjapWriterException
 	 * @return string
 	 */
 	public function &getResultingString() {
