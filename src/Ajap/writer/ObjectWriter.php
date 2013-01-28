@@ -187,9 +187,9 @@ class AjapObjectWriter {
 		if ($method->getAnnotation("Template")) {
 			$a = $method->getAnnotation("Template");
 			if ($dynamic) {
-				$code = "AjapTemplate::transform($code,'$this->nl',".($a->normalizeSpace?"true":"false").")";
+				$code = "ajap_compileTemplate($code,'$this->nl',".($a->normalizeSpace?"true":"false").")";
 			} else {
-				$code = AjapTemplate::transform($code,$this->nl,$a->normalizeSpace);
+				$code = ajap_compileTemplate($code,$this->nl,$a->normalizeSpace);
 			}
 		}
 		

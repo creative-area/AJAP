@@ -42,6 +42,28 @@ class Simple {
 	}
 	
 	/**
+	 * @Template
+	 */
+	 public function template( $value ) {
+	 	return 'We  have  <?= $value ?>  apple<? if ( $value > 1 ) { ?>s<? } ?>';
+	 }
+	
+	/**
+	 * @Template { "normalizeSpace": false }
+	 */
+	 public function templatePreserveSpaces( $value ) {
+	 	return 'We  have  <?= $value ?>  apple<? if ( $value > 1 ) { ?>s<? } ?>';
+	 }
+	
+	/**
+	 * @Template
+	 * @Dynamic
+	 */
+	 public function templateDynamic( $value ) {
+	 	return 'We  have  <?= $value ?>  apple<? if ( $value > 1 ) { ?>s<? } ?>';
+	 }
+	
+	/**
 	 * @Implicit
 	 */
 	public $implicit;

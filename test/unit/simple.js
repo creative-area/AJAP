@@ -60,6 +60,16 @@ test( "@Dynamic", function() {
 	});
 });
 
+test( "@Template", function() {
+	expect( 6 );
+	strictEqual( Simple.template( 1 ), "We have 1 apple" );
+	strictEqual( Simple.template( 2 ), "We have 2 apples" );
+	strictEqual( Simple.templatePreserveSpaces( 1 ), "We  have  1  apple" );
+	strictEqual( Simple.templatePreserveSpaces( 2 ), "We  have  2  apples" );
+	strictEqual( Simple.templateDynamic( 1 ), "We have 1 apple" );
+	strictEqual( Simple.templateDynamic( 2 ), "We have 2 apples" );
+});
+
 test( "@Implicit", function() {
 	expect( 1 );
 	stop();

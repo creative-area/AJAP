@@ -3,7 +3,6 @@
 require_once dirname(__FILE__)."/Ajap/AjapReflector.php";
 require_once dirname(__FILE__)."/Ajap/AjapCache.php";
 require_once dirname(__FILE__)."/Ajap/AjapException.php";
-require_once dirname(__FILE__)."/Ajap/AjapTemplate.php";
 
 require_once dirname(__FILE__)."/Ajap/writer/ModuleWriter.php";
 
