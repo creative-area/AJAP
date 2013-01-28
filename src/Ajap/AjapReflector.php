@@ -9,16 +9,6 @@ class AjapReflector {
 	public static $cacheUse = 0;
 	
 	/**
-	 * Get singleton reflection class for class name
-	 * @param string $className class name
-	 * @return AjapClass
-	 */
-	public static function &getReflectionClass( $className ) {
-		$tmp =& AjapClass::get( $className );
-		return $tmp;
-	}
-	
-	/**
 	 * Get construction parameters given current engine mode
 	 * 
 	 * @param ReflectionAnnotatedClass $class
@@ -58,12 +48,12 @@ class AjapReflector {
 	}
 	
 	public static function resolveProperty( &$class, &$property ) {
-		$class = AjapReflector::getReflectionClass( $class );
+		$class = AjapClass::get( $class );
 		$property = $class->getProperty( $property );
 	}
 	
 	public static function resolveMethod( &$class, &$method ) {
-		$class = AjapReflector::getReflectionClass( $class );
+		$class = AjapClass::get( $class );
 		$method = $class->getMethod( $method );
 	}
 	
@@ -177,7 +167,7 @@ class AjapReflector {
 		
 		$array = array();
 		for ( $i=$startIndex; $i<$endIndex; $i++ ) {
-			$class =& AjapReflector::getReflectionClass( $classes[ $i ] );
+			$class =& AjapClass::get( $classes[ $i ] );
 			if ( $class->getAnnotation("Ajap") ) {
 				$array[] =& $class;
 			}

@@ -43,60 +43,6 @@ class Ajap {
 		return isset( Ajap::$implicit[ $name ] ) ? Ajap::$implicit[ $name ] : null;
 	}
 
-	public static function transformTemplate( $str, $separator="##" ) {
-		$code = "";
-		$first = true;
-		$pieces = explode( $separator, $str );
-		$javascript = false;
-		foreach ( $pieces as $piece ) {
-			$trim = trim( $piece );
-			if ( preg_match( "/^\\?/", $trim ) ) {
-				$javascript=true;
-			}
-			if ( $javascript ) {
-				$piece = $trim;
-			}
-			if ( $piece != '' ) {
-				if ( $javascript ) {
-					if ( !preg_match( "/^\\?/", $piece  ) ) {
-						if ( !$first ) {
-							$code .= "+";
-						} else {
-							$first = false;
-						}
-						$code .= "($piece)";
-					} else {
-						$piece = substr( $piece, 1 );
-						$subexpr = explode( "#", $piece );
-						if ( count( $subexpr ) > 1 ) {
-							if ( !$first ) {
-								$code .= "+";
-							} else {
-								$first = false;
-							}
-							$test = trim( $subexpr[ 0 ] );
-							if ( $test == '' ) {
-								$test='true';
-							}
-							$then = Ajap::transformTemplate( $subexpr[ 1 ], "@@" );
-							$else = ( count( $subexpr ) > 2 ) ? Ajap::transformTemplate( $subexpr[ 2 ], "@@" ) : '""';
-							$code .= "(($test)?($then):($else))";
-						}
-					}
-				} else {
-					if ( !$first ) {
-						$code .= "+";
-					} else {
-						$first = false;
-					}
-					$code .= json_encode( $piece );
-				}
-			}
-			$javascript = !$javascript;
-		}
-		return $first ? '""' : $code;
-	}
-
 	public static function control( $conditions ) {
 		$errorCodes = array();
 		foreach ( $conditions as $code => $test ) {
@@ -430,7 +376,7 @@ class Ajap {
 			// Inspect file
 			require_once( $filename );
 
-			$class =& AjapReflector::getReflectionClass( $className );
+			$class =& AjapClass::get( $className );
 
 			if ( !$class->getAnnotation( "Ajap" ) ) {
 				throw new Exception( "Class cannot be reached" );
