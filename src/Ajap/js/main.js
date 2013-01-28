@@ -1,12 +1,11 @@
-window.Ajap || (function( window ){
+window.Ajap || ( window.Ajap = (function( window, Ajap, URI ) {
 
 //@include json3.min.js
-
-var URI = @URI,
-	Ajap = window.Ajap = {};
 
 //@engine
 
 //@extensions
 
-})( window );
+return Ajap;
+
+})( window, {}, @URI ) );
