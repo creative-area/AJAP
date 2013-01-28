@@ -130,3 +130,31 @@ function ajap_compileTemplate( $str, $separator, $normalizeSpace ) {
 	$flush();
 	return $code . "return __ajap__cumulator;";
 }
+
+function ajap_compact( $content ) {
+	// Remove comments
+	$content = preg_replace( "#//.*\\n|/\\*.*?\\*/#", "", $content );
+
+	// Protect important whitespace (strings, keywords, etc )
+	$strings = array();
+
+	$content = preg_replace_callback( "/'(?:\\\\\\\\|\\\\'|[^'])*'|\"(?:\\\\\\\\|\\\\\"|[^\"])*\"|(?:\\sin|delete|function|var|typeof|void|return|else|new)\\s+[^\\{\\(]/", function( $match ) use ( &$strings ) {
+		$match = $match[ 0 ];	
+		$firstChar = substr( $match, 0, 1 );
+		if ( $firstChar != "'" && $firstChar != '"' ) {
+			$match = preg_replace( "/\\s+/", " ", $match );
+		}
+		$strings[] = $match;
+		return "@<" . ( count( $strings ) - 1 ) . ">";
+	}, $content );
+
+	// Remove whitespaces
+	$content = preg_replace( "/\\s+/", "", $content );
+
+	// Put protected stuff back in 
+	$content = preg_replace_callback( "/@<([0-9]+)>/", function( $match ) use ( &$strings ) {
+		return $strings[ 1 * $match[ 1 ] ];
+	}, $content );
+
+	return $content;
+}
