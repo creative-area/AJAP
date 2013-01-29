@@ -12,7 +12,7 @@ class Ajap {
 	
 	public static function require_module( $module ) {
 		if ( Ajap::$currentEngine==null ) {
-			throw new Exception("Ajap::require: No engine running");
+			throw new Exception( "Ajap::require: No engine running" );
 		}
 		$file = ajap_moduleFile( Ajap::$currentEngine->getOption( "path" ), $module );
 		if ( $file === false ) {
@@ -72,7 +72,7 @@ class Ajap {
 			. $url;
 		$this->options = ( is_array( $options ) ? $options : array() ) + array(
 			"base_uri" => $url,
-			"base_dir" => dirname($_SERVER["SCRIPT_FILENAME"]),
+			"base_dir" => dirname( $_SERVER[ "SCRIPT_FILENAME" ] ),
 			"cache" => false,
 			"compact" => false,
 			"css_packer" => false,
@@ -83,22 +83,25 @@ class Ajap {
 			"production_cache" => false,
 			"render_filter" => false,
 			"session" => array(),
-			"uri" => $_SERVER['PHP_SELF'],
-			"path" => dirname($_SERVER["SCRIPT_FILENAME"])
+			"uri" => $_SERVER[ "PHP_SELF" ],
+			"path" => dirname( $_SERVER[ "SCRIPT_FILENAME" ] ),
 		);
 	}
 
 	private function getClassesFor( $modules ) {
 		return AjapReflector::getClassesFrom( $this->getOption( "path" ), $modules );
 	}
+	
+	private $writer;
+	private $alreadyDoneClasses;
 
-	private function renderClass(&$class,&$writer,&$alreadyDone) {
+	private function renderClass( &$class ) {
 
 		// Already done?
-		if ( isset( $alreadyDone[ $class->getName() ] ) ) {
+		if ( isset( $this->alreadyDoneClasses[ $class->getName() ] ) ) {
 			return;
 		}
-		$alreadyDone[ $class->getName() ] = true;
+		$this->alreadyDoneClasses[ $class->getName() ] = true;
 	  
 		// Is it Ajap?
 		if ( !ajap_isAjap( $this->getOption("path"), $class ) ) {
@@ -109,18 +112,18 @@ class Ajap {
 		if (( $dependsOn = $class->getAnnotation( "DependsOn" ) )) {
 			$classes = $this->getClassesFor( $dependsOn );
 			foreach ( $classes as &$c ) {
-				$this->renderClass( $c, $writer, $alreadyDone );
+				$this->renderClass( $c );
 			}
 		}
 
 		// Super class
 		$super = $class->getParentClass();
 		if ( is_object( $super ) ) {
-			$this->renderClass( $super, $writer, $alreadyDone );
+			$this->renderClass( $super );
 		}
 
 		// Start in writer
-		$writer->openClass( $class );
+		$classWriter =& $this->writer->classWriter( $class );
 
 		// Method to ignore by name
 		$methods_to_ignore = array(
@@ -139,18 +142,18 @@ class Ajap {
 				if ( preg_match( "/^method:/", $a ) ) {
 					$methodName = substr( $a, 7 );
 					if ( !isset( $methods_to_ignore[ $methodName ] ) ) {
-						$writer->addCascadingStyleSheet( $class->getMethod( $methodName ) );
+						$classWriter->addCascadingStyleSheet( $class->getMethod( $methodName ) );
 						$methods_to_ignore[ $methodName ] = true;
 					}
 				} else {
-					$writer->addCascadingStyleSheet( $a );
+					$classWriter->addCascadingStyleSheet( $a );
 				}
 			}
 		}
 		$cssFile = substr( $class->getFileName(), 0, -4 ).".css";
 		if ( file_exists( $cssFile ) ) {
 			$cssFile = "!$cssFile";
-			$writer->addCascadingStyleSheet( $cssFile );
+			$classWriter->addCascadingStyleSheet( $cssFile );
 		}
 
 		// Deal with JS files
@@ -159,11 +162,11 @@ class Ajap {
 				if ( preg_match( "/^method:/", $a ) ) {
 				$methodName = substr( $a, 7 );
 					if ( !isset( $methods_to_ignore[ $methodName ] ) ) {
-						$writer->addJavascript( $class->getMethod( $methodName ) );
+						$classWriter->addJavascript( $class->getMethod( $methodName ) );
 						$methods_to_ignore[ $methodName ] = true;
 					}
 				} else {
-					$writer->addJavascript( $a );
+					$classWriter->addJavascript( $a );
 				}
 			}
 		}
@@ -171,7 +174,7 @@ class Ajap {
 		// Aliases
 		if (( $tmp = $class->getAnnotation( "Alias" ) )) {
 			foreach ( $tmp as $a ) {
-				$writer->addAlias( $a );
+				$classWriter->addAlias( $a );
 			}
 		}
 
@@ -190,7 +193,7 @@ class Ajap {
 			}
 
 			// Add to writer
-			$writer->addProperty($property);
+			$classWriter->addProperty($property);
 		}
 
 		// Methods
@@ -219,22 +222,19 @@ class Ajap {
 
 			// Check if CSS, if so, add to CSS block
 			if ( $method->getAnnotation( "CSS" ) ) {
-				$writer->addCascadingStyleSheet( $method );
+				$classWriter->addCascadingStyleSheet( $method );
 				continue;
 			}
 
 			// Check if init related javascript, if so add to init_code
 			if ( $method->getAnnotation( "Init" ) ) {
-				$writer->addInitializationJavascript( $method );
+				$classWriter->addInitializationJavascript( $method );
 				continue;
 			}
 
 			// If we're here, then we have a method
-			$writer->addMethod($method);
+			$classWriter->addMethod($method);
 		}
-
-		$writer->closeClass();
-
 	}
 
 	public function renderModule( $module, $moduleData=array(), $alreadyLoaded=array() ) {
@@ -267,28 +267,25 @@ class Ajap {
 		}
 
 		// Instantiate writer
-		$writer = new AjapModuleWriter( $this );
+		$this->writer = new AjapModuleWriter( $this->options );
 
 		// Original request
 		$reqModule = $module;
 
 		// Utility array
-		$alreadyDoneClasses = array();
+		$this->alreadyDoneClasses = array();
 
 		// Render classes
 		$modules = explode( ",", $module );
 		$classes = $this->getClassesFor( $modules );
 		foreach ( $classes as &$class ) {
-			$this->renderClass( $class, $writer, $alreadyDoneClasses );
+			$this->renderClass( $class );
 		}
 
 		// Timing
 		$afterInspectionTime = microtime( true );
 		$inspectionDelay = $afterInspectionTime - $time;
 
-		// Content
-		$body =& $writer->getResultingString();
-	 
 		// Footer with timing report
 		$generationDelay = microtime( true ) - $afterInspectionTime;
 		$footer = "\n\n// Classes inspected in $inspectionDelay seconds\n"
@@ -300,7 +297,7 @@ class Ajap {
 			. " generated by Ajap on " . $_SERVER[ 'SERVER_NAME' ] . " (" . date( "D j M Y, G:i:s e", $time ) . ")\n\n";
 
 		// Get content
-		$content = $writer->getResultingString();
+		$content = $this->writer->getResultingString();
 
 		// Compact if asked to
 		if ( $this->getOption( "compact" ) ) {
@@ -312,7 +309,7 @@ class Ajap {
 
 		// Handle cache
 		if ( $this->getOption( "cache" ) !== false ) {
-			$cache->write( $content, $writer->getLocalFilesLoaded() );
+			$cache->write( $content, $this->writer->getLocalFilesLoaded() );
 			$cache->includeContent();
 			$totalDelay = microtime( true ) - $time;
 			echo "// Total process time is $totalDelay seconds\n";
@@ -320,6 +317,7 @@ class Ajap {
 			echo $content;
 		}
 
+		$this->writer = $this->alreadyDoneClasses = null;
 		$this->_isRenderingModule = false;
 	}
 
