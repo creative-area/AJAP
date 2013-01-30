@@ -1,10 +1,10 @@
 <?php
 
-require_once dirname(__FILE__)."/Ajap/AjapReflector.php";
-require_once dirname(__FILE__)."/Ajap/AjapCache.php";
-require_once dirname(__FILE__)."/Ajap/AjapException.php";
-
-require_once dirname(__FILE__)."/Ajap/writer/Writer.php";
+require_once dirname( __FILE__ ) . "/Ajap/utils.php";
+require_once dirname( __FILE__ ) . "/Ajap/AjapAnnotations.php";
+require_once dirname( __FILE__ ) . "/Ajap/AjapReflector.php";
+require_once dirname( __FILE__ ) . "/Ajap/AjapCache.php";
+require_once dirname( __FILE__ ) . "/Ajap/AjapException.php";
 
 class Ajap {
 
@@ -247,6 +247,10 @@ class Ajap {
 	}
 
 	public function renderModule( $module, $moduleData=array(), $alreadyLoaded=array() ) {
+
+		// Required files
+		require_once dirname( __FILE__ ) . "/Ajap/writer/ClassWriter.php";
+		require_once dirname( __FILE__ ) . "/Ajap/writer/Writer.php";
 
 		// Set as current engine
 		Ajap::$currentEngine =& $this;

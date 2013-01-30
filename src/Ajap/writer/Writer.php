@@ -1,7 +1,5 @@
 <?php
 
-require_once dirname(__FILE__)."/ClassWriter.php";
-
 /**
  * Interface of a module writer
  */
