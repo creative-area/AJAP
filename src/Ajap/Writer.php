@@ -37,7 +37,7 @@ class AjapWriter {
 			return "";
 		}
 		
-		$dir = realpath( dirname(__FILE__) . "/../js" );
+		$dir = realpath( dirname(__FILE__) . "/js" );
 
 		$main = "$dir/main.js";
 		$code = file_get_contents( $main );
