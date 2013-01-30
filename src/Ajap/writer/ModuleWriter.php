@@ -20,43 +20,11 @@ class AjapModuleWriter {
 	private $objectWriters;
 	
 	/**
-	 * Transforms a packer into an array if needed
-	 * @param string $packer
-	 */
-	private function transformPacker( $packer ) {
-		if ( $packer !== FALSE ) {
-			$tmp = explode( $packer, "::" );
-			if ( count( $tmp ) === 2 ) {
-				$packer = $tmp;
-			}
-		}
-		return $packer;
-	}
-	
-	/**
 	 * Initiating engine
 	 * @param Ajap $engine
 	 */
 	public function __construct( &$options ) {
-		$this->options = array(
-			"uri" => $options[ "uri" ],
-			"isCompact" => $options[ "compact" ],
-			"nl" => $options[ "compact" ] ? "" : "\n",
-			"isForCache" => $options[ "cache" ] !== FALSE,
-			"base_uri" => $options[ "base_uri" ],
-			"base_dir" => realpath( $options[ "base_dir" ] ),
-			"module_path" => $options[ "path" ],
-			"js_packer" => $this->transformPacker( $options[ "js_packer" ] ),
-			"css_packer" => $this->transformPacker( $options[ "css_packer" ] ),
-			"js_engine" => $options[ "engine" ],
-			"ajap_uri" => $options[ "uri" ],
-		);
-
-		if ( $this->options[ "isForCache" ] ) {
-			$this->options[ "s_base_uri" ] = addslashes( $this->options[ "base_uri" ] );
-			$this->options[ "s_base_dir" ] = addslashes( $this->options[ "base_dir" ] );
-		}
-
+		$this->options =& $options;
 		$this->objectWriters = array();
 	}
 	
@@ -66,19 +34,17 @@ class AjapModuleWriter {
 	 * Gets Ajap Core code
 	 */
 	private function generateAjapCore() {
-		$isForCache = $this->options[ "isForCache" ];
+		$isForCache = $this->options[ "cache" ];
 		if ( !$isForCache && !Ajap::isFirstLoad() ) {
 			return "";
 		}
-		
-		$newline = $this->options[ "nl" ];
 		
 		$dir = realpath( dirname(__FILE__) . "/../js" );
 
 		$main = "$dir/main.js";
 		$code = file_get_contents( $main );
 		
-		$engine = $this->options[ "js_engine" ];
+		$engine = $this->options[ "engine" ];
 		$engineSource = "$dir/engines/$engine.js";
 		
 		$extensionsCode = "";
@@ -90,7 +56,7 @@ class AjapModuleWriter {
 		);
 		
 		foreach ( $extensionsFiles as $file ) {
-    		$extensionsCode .= file_get_contents( $file ).$newline;
+    		$extensionsCode .= file_get_contents( $file )."\n";
 		}
 		
 		$this->loadedFiles = array_merge( array( $main, $engineSource ), $extensionsFiles );
@@ -153,18 +119,17 @@ class AjapModuleWriter {
 	 */
 	public function &getResultingString() {
 		if ($this->resultingString==null) {
-			$nl = $this->options["nl"];
-			$this->resultingString = $this->generateAjapCore().$nl;
+			$this->resultingString = $this->generateAjapCore()."\n";
 			if (count($this->objectWriters)>0) {
 				$code = "";
 				foreach ($this->objectWriters as &$objectWriter) {
 					$tmp = $objectWriter->getResultingString();
-					if ($tmp!="") $code .= $tmp.$nl;
+					if ($tmp!="") $code .= $tmp."\n";
 				}
 				if ($code!="")
 					$this->resultingString .=
-						"Ajap.whenReady(function(){".$nl
-						.$code.$nl
+						"Ajap.whenReady(function(){"."\n"
+						.$code."\n"
 						."});";
 			}
 		}

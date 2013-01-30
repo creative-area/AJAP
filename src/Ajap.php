@@ -70,7 +70,7 @@ class Ajap {
 		$url = ( isset( $_SERVER[ "HTTPS" ] ) ? ( $_SERVER[ "HTTPS" ] == "on" ? "https://" : "http://" ) : "" )
 			. ( isset( $_SERVER[ "HTTP_HOST" ] ) ? $_SERVER[ "HTTP_HOST" ] : "" )
 			. $url;
-		$this->options = ( is_array( $options ) ? $options : array() ) + array(
+		$options = ( is_array( $options ) ? $options : array() ) + array(
 			"base_uri" => $url,
 			"base_dir" => dirname( $_SERVER[ "SCRIPT_FILENAME" ] ),
 			"cache" => false,
@@ -86,6 +86,15 @@ class Ajap {
 			"uri" => $_SERVER[ "PHP_SELF" ],
 			"path" => dirname( $_SERVER[ "SCRIPT_FILENAME" ] ),
 		);
+		$options[ "base_dir" ] = realpath( $options[ "base_dir" ] );
+		foreach( array( "js_packer", "css_packer" ) as $packer ) {
+			$options[ $packer ] = ajap_methodExpression( $options[ $packer ] );
+		}
+		if ( $options[ "cache" ] ) {
+			$options[ "s_base_uri" ] = addslashes( $options[ "base_uri" ] );
+			$options[ "s_base_dir" ] = addslashes( $options[ "base_dir" ] );
+		}
+		$this->options =& $options;
 	}
 
 	private function getClassesFor( $modules ) {

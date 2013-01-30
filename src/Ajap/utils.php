@@ -158,3 +158,13 @@ function ajap_compact( $content ) {
 
 	return $content;
 }
+
+function ajap_methodExpression( $expr ) {
+	if ( $expr !== FALSE ) {
+		$tmp = explode( $expr, "::" );
+		if ( count( $tmp ) === 2 ) {
+			$expr = $tmp;
+		}
+	}
+	return $expr;
+}

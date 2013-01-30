@@ -26,11 +26,9 @@ class AjapObjectWriter {
 	private $realClassName;
 	private $className;
 	
-	private $module_path;
+	private $path;
 	
-	private $isCompact;
-	private $nl;
-	private $isForCache;
+	private $cache;
 	private $hasDynamic;
 	
 	private $_checkSuper = array();
@@ -58,7 +56,7 @@ class AjapObjectWriter {
 	private function generateComment(&$object) {
 		static $emptyLine = 
 		"// -----------------------------------------------------------------------------";
-		if ($this->isCompact || ($object!=$this->class && $this->class->getAnnotation("Volatile"))) return "";
+		if ( $object !== $this->class && $this->class->getAnnotation( "Volatile" ) ) return "";
 		$doc_comment = $object->getDocComment();
 		$doc_comment = str_replace("\r\n","\n",substr($doc_comment,2,-2));
 		$lines = explode("\n",$doc_comment);
@@ -81,11 +79,10 @@ class AjapObjectWriter {
 	 */
 	public function generateTitleComment() {
 		static $crunch = "#################################################";
-		if ($this->isCompact) return;
 		$len = strlen($this->className);
 		$dec = $len%2;
 		$nChars = floor((76-$len)/2);
-		return "$this->nl$this->nl//".substr($crunch,0,$nChars)." $this->className ".substr($crunch,0,$nChars+$dec)."\n";
+		return "\n\n//".substr($crunch,0,$nChars)." $this->className ".substr($crunch,0,$nChars+$dec)."\n";
 	}
 	
 	/**
@@ -95,7 +92,7 @@ class AjapObjectWriter {
 	 */
 	private function generateAnonymousFunction($code,$isPHP=false) {
 		if ($isPHP) return "'function(){'.($code).'}'";
-		return "function(){".$this->nl.$code.$this->nl."}";
+		return "function(){\n$code\n}";
 	}
 	
 	/**
@@ -119,7 +116,6 @@ class AjapObjectWriter {
 		if ($isPHP) {
 			$code = "'Ajap.addStyle('.json_encode($code).');'";
 		} else {
-			if ($this->isCompact) $code = trim($code);
 			if ($code!="") {
 				if ($this->css_packer!==FALSE) $code = call_user_func($this->css_packer,$code);
 				$code = "Ajap.addStyle(".json_encode($code).");";
@@ -139,7 +135,6 @@ class AjapObjectWriter {
 		if (!$isPHP) {
 			if ($this->js_packer!==FALSE)
 				$code = call_user_func($this->js_packer,$code);
-			else if ($this->isCompact) $code = trim($code);
 		}
 
 		return $code;
@@ -173,7 +168,7 @@ class AjapObjectWriter {
 
 		$nbParams = count($method->getParameters());
 		$params = $nbParams>0?array_fill(0,$nbParams,0):array();
-		$dynamic = ($this->isForCache && $method->getAnnotation("Dynamic"));
+		$dynamic = ($this->cache && $method->getAnnotation("Dynamic"));
 		
 		if (!$dynamic) $code = AjapReflector::doCall($this->class,$method,$params);
 		else {
@@ -185,14 +180,14 @@ class AjapObjectWriter {
 		if ($method->getAnnotation("Template")) {
 			$a = $method->getAnnotation("Template");
 			if ($dynamic) {
-				$code = "ajap_compileTemplate($code,'$this->nl',".($a->normalizeSpace?"true":"false").")";
+				$code = "ajap_compileTemplate($code,\"\\n\",".($a->normalizeSpace?"true":"false").")";
 			} else {
-				$code = ajap_compileTemplate($code,$this->nl,$a->normalizeSpace);
+				$code = ajap_compileTemplate($code,"\n",$a->normalizeSpace);
 			}
 		}
 		
 		$code = $this->generateCode($type,$code,$dynamic);
-		if ($dynamic) $code = "<?php\n\$code=$code; echo (\$code==null?'':\$code).'$this->nl'; ?>";
+		if ($dynamic) $code = "<?php\n\$code=$code; echo (\$code==null?'':\$code).\"\\n\"; ?>";
 		else if ($code==null) $code='';
 		return $code;
 	}
@@ -269,7 +264,7 @@ class AjapObjectWriter {
 		}
 		
 		// Else it provides an URI
-		$dynamic = $this->isForCache && $method->getAnnotation("Dynamic");
+		$dynamic = $this->cache && $method->getAnnotation("Dynamic");
 		if ($dynamic) {
 			$this->hasDynamic = true;
 			$uri = 'ajap_resolveURI(AjapReflector::dynamicDoCall("'.$this->realClassName.'","'.$method->getName().'"),"'.$this->base_uri.'","'.$this->base_dir.'")';
@@ -338,14 +333,14 @@ class AjapObjectWriter {
 		$comma = $params==""?"":",";
 		
 		// Get code
-		$code = "function(response){".$this->nl
-			.$this->generateCodeMethodBody(OBJECT_WRITER_JS,$method).$this->nl
-			."}";
+		$code = "function(response){\n"
+			.$this->generateCodeMethodBody(OBJECT_WRITER_JS,$method)
+			."\n}";
 			
 		// Generate
 		return $this->generateComment($method)
-			.$method->getName().":function($params){".$this->nl
-			."return Ajap.jsonp($url,this,$cached,$code);".$this->nl
+			.$method->getName().":function($params){\n"
+			."return Ajap.jsonp($url,this,$cached,$code);\n"
 			."}";
 	}
 		
@@ -377,8 +372,8 @@ class AjapObjectWriter {
 		// Is it Post?
 		if ($method->getAnnotation("Post")) {
 			return $this->generateComment($method)
-				."$name:function(form){".$this->nl
-				."return Ajap.post('$this->_module','$name',$this->_implicits_post$cached);".$this->nl
+				."$name:function(form){\n"
+				."return Ajap.post('$this->_module','$name',$this->_implicits_post$cached);\n"
 				."}";
 		}
 
@@ -390,8 +385,8 @@ class AjapObjectWriter {
 		$commaHead = ($params!="")?",":"";
 		
 		return $this->generateComment($method)
-			."$name:function($params){".$this->nl
-			."return Ajap.send('$this->_module','$name',[$params$comma$this->_implicits]$cached);".$this->nl
+			."$name:function($params){\n"
+			."return Ajap.send('$this->_module','$name',[$params$comma$this->_implicits]$cached);\n"
 			."}";
 	}
 	
@@ -432,9 +427,9 @@ class AjapObjectWriter {
 		$name = $method->getAnnotation("Init")?"":($method->getName().":");
 		
 		return $this->generateComment($method)
-			.$name."function(".implode(",",$params)."){".$this->nl
-			.$this->generateCodeMethodBody(OBJECT_WRITER_JS,$method).$this->nl
-			."}";
+			.$name."function(".implode(",",$params)."){\n"
+			.$this->generateCodeMethodBody(OBJECT_WRITER_JS,$method)
+			."\n}";
 		
 	}
 	
@@ -454,7 +449,7 @@ class AjapObjectWriter {
 		$code = $this->generateComment($property)."\$$name:";
 		
 		// Is it dynamic?
-		$dynamic = $this->isForCache && $property->getAnnotation("Dynamic");
+		$dynamic = $this->cache && $property->getAnnotation("Dynamic");
 		if ($dynamic) {
 			$this->hasDynamic = true;
 			$code .= "<?php echo json_encode(AjapReflector::dynamicDoGet('$this->realClassName','$name')); ?>";
@@ -462,7 +457,7 @@ class AjapObjectWriter {
 			$code .= json_encode(AjapReflector::doGet($this->class,$property));
 		}
 		
-		return $code.$this->nl;
+		return $code."\n";
 	}
 	
 	/**
@@ -476,10 +471,10 @@ class AjapObjectWriter {
 		$setLoaded = "!Ajap._classIsLoaded('$module')";
 		
 		$code = $this->generateTitleComment()
-				.$this->generateComment($this->class).$this->nl
-			.($code!=""?"if ($setLoaded){".$code."};":"$setLoaded;").$this->nl;
+				.$this->generateComment($this->class)."\n"
+			.($code!=""?"if ($setLoaded){".$code."};":"$setLoaded;")."\n";
 			
-		if ($this->isForCache) {
+		if ($this->cache) {
 			$require = "";
 			if ($this->hasDynamic) {
 				$require = "\n        require_once '".addslashes($this->class->getFileName())."';";
@@ -511,9 +506,9 @@ class AjapObjectWriter {
 		
 		$code = "";
 		foreach ($this->alias as &$alias) {
-			$code .= $this->generateAlias($alias).$this->nl;
+			$code .= $this->generateAlias($alias)."\n";
 		}
-		return $code.$this->nl;
+		return $code."\n";
 	}
 	
 	/**
@@ -526,7 +521,7 @@ class AjapObjectWriter {
 		$tmp = $this->class->getParentClass();
 		$super = FALSE;
 		while (is_object($tmp))  {
-			if (ajap_isAjap($this->module_path,$tmp) && !$tmp->getAnnotation("Volatile")) {
+			if (ajap_isAjap($this->path,$tmp) && !$tmp->getAnnotation("Volatile")) {
 				$name = $tmp->getName();
 				$this->_checkSuper[$name]=true;
 				if ($super===FALSE) $super = $name;
@@ -552,10 +547,7 @@ class AjapObjectWriter {
 		
 		// Class code
 		if (count($fields)==0 && $super==FALSE) return "";
-		$code = "{".$this->nl
-					.implode(",".$this->nl,$fields).$this->nl
-					."}";
-		
+		$code = "{\n" . implode(",\n",$fields) . "\n}";
 		
 		$code = "Ajap.mergeObjects(".($super?"$super,":"")."window.$this->className?window.$this->className:{},$code)";
 		
@@ -564,10 +556,10 @@ class AjapObjectWriter {
 		$tmp = explode(".",$this->className);
 		$prec = "window.";
 		for ($i=0; $i<count($tmp)-1; $i++) {
-			$decl .= "if (typeof($prec$tmp[$i])=='undefined') $prec$tmp[$i]={};$this->nl";
+			$decl .= "if (typeof($prec$tmp[$i])=='undefined') $prec$tmp[$i]={};\n";
 			$prec .= "$tmp[$i].";
 		}
-		return "{$decl}var \$__ajap__object=$code;{$this->nl}window.$this->className=\$__ajap__object;$this->nl";
+		return "{$decl}var \$__ajap__object=$code;{\n}window.$this->className=\$__ajap__object;\n";
 	}
 	
 	/**
@@ -588,7 +580,7 @@ class AjapObjectWriter {
 	private function generateInit() {
 		
 		$object = $this->generateObjectRelated();
-		if ($object!="") $object .= $this->nl;
+		if ($object!="") $object .= "\n";
 		else if (count($this->init)==0 || $this->class->getAnnotation("Virtual")) return "";
 
 		$initThis = ($object=="")?'{}':'$__ajap__object';
@@ -600,12 +592,12 @@ class AjapObjectWriter {
 					$this->generateCodeMethodBody(OBJECT_WRITER_JS,$init)
 				);
 				if ($tmp=="") continue;
-				$tmp = "($tmp).apply($initThis);$this->nl";
+				$tmp = "($tmp).apply($initThis);\n";
 				$code .= $this->generateComment($init).$tmp;
 			}
 		}
 		if ($code!="") $code = $this->generateAnonymousFunction($code);
-		if ($code!="") $code = "Ajap.makeInitCode($code);$this->nl";
+		if ($code!="") $code = "Ajap.makeInitCode($code);\n";
 
 		return $this->generateAnonymousFunction($object.$code);
 	}
@@ -632,9 +624,9 @@ class AjapObjectWriter {
 		if (count($array)==0) return "";
 		array_unshift($array,"function(){Ajap.setCurrentStyleNodeId('$this->className');}");
 		array_push($array,"function(){Ajap.setCurrentStyleNodeId(0);}");
-		$code = implode(",".$this->nl,$array);
+		$code = implode(",\n",$array);
 		if ($code=="") return "";
-		return "Ajap.whenReady([".$this->nl.$this->nl
+		return "Ajap.whenReady([\n\n"
 			.$code
 			."]);";
 			
@@ -663,10 +655,18 @@ class AjapObjectWriter {
 
 		$this->class = $class;
 		$this->realClassName = $class->getName();
-		$this->className = str_replace("_",".",$this->realClassName);
+		$this->className = str_replace( "_", ".", $this->realClassName );
 		
-		foreach ($options as $k => &$option) {
-			$this->$k =& $option;
+		foreach ( array(
+			"cache",
+			"base_uri",
+			"base_dir",
+			"s_base_uri",
+			"s_base_dir",
+			"css_packer",
+			"js_packer",
+		) as $field ) {
+			$this->$field = $options[ $field ];
 		}
 		
 		$this->hasDynamic = FALSE;
