@@ -31,10 +31,8 @@ class Ajap {
 		return count( Ajap::$alreadyLoaded ) === 0;
 	}
 
-	private $_isRenderingModule = false;
-
 	public static function isRenderingModule() {
-  		return Ajap::$currentEngine !== null && Ajap::$currentEngine->_isRenderingModule;
+  		return !!$this->writer;
 	}
 
 	private static $implicit = array();
@@ -97,154 +95,7 @@ class Ajap {
 		$this->options =& $options;
 	}
 
-	private function getClassesFor( $modules ) {
-		return AjapReflector::getClassesFrom( $this->getOption( "path" ), $modules );
-	}
-	
 	private $writer;
-	private $alreadyDoneClasses;
-
-	private function renderClass( &$class ) {
-
-		// Already done?
-		if ( isset( $this->alreadyDoneClasses[ $class->getName() ] ) ) {
-			return;
-		}
-		$this->alreadyDoneClasses[ $class->getName() ] = true;
-	  
-		// Is it Ajap?
-		if ( !ajap_isAjap( $this->getOption("path"), $class ) ) {
-			return;
-		}
-
-		// Handle dependencies
-		if (( $dependsOn = $class->getAnnotation( "DependsOn" ) )) {
-			$classes = $this->getClassesFor( $dependsOn );
-			foreach ( $classes as &$c ) {
-				$this->renderClass( $c );
-			}
-		}
-
-		// Super class
-		$super = $class->getParentClass();
-		if ( is_object( $super ) ) {
-			$this->renderClass( $super );
-		}
-
-		// Start in writer
-		$classWriter =& $this->writer->classWriter( $class );
-
-		// Method to ignore by name
-		$methods_to_ignore = array(
-			$class->getName() => true,
-			$class->getName()."Render" => true,
-			$class->getName()."Execute" => true,
-			"__construct" => true,
-			"__construct_render" => true,
-			"__construct_execute" => true,
-			"__destruct" => true
-		);
-
-		// Deal with CSS if needed
-		if (( $tmp = $class->getAnnotation( "CSS" ) )) {
-			foreach ( $tmp as $a ) {
-				if ( preg_match( "/^method:/", $a ) ) {
-					$methodName = substr( $a, 7 );
-					if ( !isset( $methods_to_ignore[ $methodName ] ) ) {
-						$classWriter->addCascadingStyleSheet( $class->getMethod( $methodName ) );
-						$methods_to_ignore[ $methodName ] = true;
-					}
-				} else {
-					$classWriter->addCascadingStyleSheet( $a );
-				}
-			}
-		}
-		$cssFile = substr( $class->getFileName(), 0, -4 ).".css";
-		if ( file_exists( $cssFile ) ) {
-			$cssFile = "!$cssFile";
-			$classWriter->addCascadingStyleSheet( $cssFile );
-		}
-
-		// Deal with JS files
-		if (( $tmp = $class->getAnnotation( "JS" ) )) {
-			foreach ( $tmp as $a ) {
-				if ( preg_match( "/^method:/", $a ) ) {
-				$methodName = substr( $a, 7 );
-					if ( !isset( $methods_to_ignore[ $methodName ] ) ) {
-						$classWriter->addJavascript( $class->getMethod( $methodName ) );
-						$methods_to_ignore[ $methodName ] = true;
-					}
-				} else {
-					$classWriter->addJavascript( $a );
-				}
-			}
-		}
-
-		// Aliases
-		if (( $tmp = $class->getAnnotation( "Alias" ) )) {
-			foreach ( $tmp as $a ) {
-				$classWriter->addAlias( $a );
-			}
-		}
-
-		// Properties
-		$properties = $class->getProperties();
-		foreach ( $properties as &$property ) {
-
-			// Ignore non public properties
-			if ( !$property->isPublic() ) {
-				continue;
-			}
-
-			// Ignore properties tagged as local
-			if ( $property->getAnnotation( "Local" ) ) {
-				continue;
-			}
-
-			// Add to writer
-			$classWriter->addProperty($property);
-		}
-
-		// Methods
-		$methods = $class->getMethods();
-		foreach ( $methods as &$method ) {
-
-			// Ignore non public methods
-			if ( !$method->isPublic() ) {
-				continue;
-			}
-
-			// Ignore constructor/destructor and JS & CSS methods already handled
-			if ( isset( $methods_to_ignore[ $method->getName() ] ) ) {
-				continue;
-			}
-
-			// Ignore methods tagged as local
-			if ( $method->getAnnotation( "Local" ) ) {
-				continue;
-			}
-
-			// Apply user defined filters
-			if ( $this->getOption( "render_filter" ) !== false && !call_user_func( $this->getOption( "render_filter" ), $method ) ) {
-				continue;
-			}
-
-			// Check if CSS, if so, add to CSS block
-			if ( $method->getAnnotation( "CSS" ) ) {
-				$classWriter->addCascadingStyleSheet( $method );
-				continue;
-			}
-
-			// Check if init related javascript, if so add to init_code
-			if ( $method->getAnnotation( "Init" ) ) {
-				$classWriter->addInitializationJavascript( $method );
-				continue;
-			}
-
-			// If we're here, then we have a method
-			$classWriter->addMethod($method);
-		}
-	}
 
 	public function renderModule( $module, $moduleData=array(), $alreadyLoaded=array() ) {
 
@@ -254,7 +105,9 @@ class Ajap {
 
 		// Set as current engine
 		Ajap::$currentEngine =& $this;
-		$this->_isRenderingModule = true;
+
+		// Instantiate writer
+		$this->writer = new AjapWriter( $this->options );
 
 		// Set global variable
 		Ajap::$implicit = ( is_array( $moduleData ) ) ? $moduleData : array();
@@ -275,24 +128,19 @@ class Ajap {
 				$t = microtime( true ) - $time;
 				echo ob_get_clean();
 				echo "// Retrieved from cache in $t (" . date( "D j M Y, G:i:s e", $time ) . ")\n";
+				Ajap::$currentEngine = $this->writer = null;
 				return;
 			}
 		}
 
-		// Instantiate writer
-		$this->writer = new AjapWriter( $this->options );
-
 		// Original request
 		$reqModule = $module;
 
-		// Utility array
-		$this->alreadyDoneClasses = array();
-
 		// Render classes
 		$modules = explode( ",", $module );
-		$classes = $this->getClassesFor( $modules );
+		$classes = AjapReflector::getClassesFrom( $this->options[ "path" ], $modules );
 		foreach ( $classes as &$class ) {
-			$this->renderClass( $class );
+			$this->writer->addClass( $class );
 		}
 
 		// Timing
@@ -330,8 +178,7 @@ class Ajap {
 			echo $content;
 		}
 
-		$this->writer = $this->alreadyDoneClasses = null;
-		$this->_isRenderingModule = false;
+		Ajap::$currentEngine = $this->writer = null;
 	}
 
 	// PEAR sucks, I have to ignore its internal errors
