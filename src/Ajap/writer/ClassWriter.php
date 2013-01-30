@@ -7,9 +7,9 @@ define("OBJECT_WRITER_CSS",0);
 define("OBJECT_WRITER_JS",1);
 
 /**
- * Object writer class
+ * Class writer class
  */
-class AjapObjectWriter {
+class AjapClassWriter {
 	
 	//------------------------------ TYPE RELATED ---------------------------//
 	
@@ -218,7 +218,7 @@ class AjapObjectWriter {
 					if ($local) $uri = substr($uri,1);
 					$content = file_get_contents($uri);
 					echo ('.$this->generateAnonymousFunction($this->generateCode($type,'$content',true),true).');
-				} else echo json_encode($blocking."'.AjapObjectWriter::$TYPE_STRING[$type].'|".$uri);
+				} else echo json_encode($blocking."'.AjapClassWriter::$TYPE_STRING[$type].'|".$uri);
 			} else {
 				echo "false";
 			}'."\n?>";
@@ -240,7 +240,7 @@ class AjapObjectWriter {
 					$code = $this->generateCode($type,$content,false);
 					if ($code=="") return "";
 					return $this->generateAnonymousFunction($code);
-				} else return json_encode($blocking.AjapObjectWriter::$TYPE_STRING[$type]."|".$uri);
+				} else return json_encode($blocking.AjapClassWriter::$TYPE_STRING[$type]."|".$uri);
 			}
 			return "";
 		}
@@ -257,7 +257,7 @@ class AjapObjectWriter {
 		static $params = array();
 		
 		// Does it actually generate code?
-		if ($method->getAnnotation(AjapObjectWriter::$TYPE_STRING[$type])) {
+		if ($method->getAnnotation(AjapClassWriter::$TYPE_STRING[$type])) {
 			$code = $this->generateCodeMethodBody($type,$method);
 			if ($code=="") return "";
 			return $this->generateAnonymousFunction($code);

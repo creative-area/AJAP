@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname(__FILE__)."/ObjectWriter.php";
+require_once dirname(__FILE__)."/ClassWriter.php";
 
 /**
  * Interface of a module writer
@@ -17,7 +17,7 @@ class AjapWriter {
 	 * Object writers
 	 * @var array
 	 */
-	private $objectWriters;
+	private $classWriters;
 	
 	/**
 	 * Initiating engine
@@ -25,7 +25,7 @@ class AjapWriter {
 	 */
 	public function __construct( &$options ) {
 		$this->options =& $options;
-		$this->objectWriters = array();
+		$this->classWriters = array();
 	}
 	
 	private $loadedFiles = null;
@@ -90,8 +90,8 @@ class AjapWriter {
 	 * Get class writer for given class
 	 */	
 	public function &classWriter( &$class ) {
-		$tmp = new AjapObjectWriter($class,$this->options);
-		$this->objectWriters[] =& $tmp;
+		$tmp = new AjapClassWriter($class,$this->options);
+		$this->classWriters[] =& $tmp;
 		return $tmp; 
 	}
 	
@@ -103,8 +103,8 @@ class AjapWriter {
 		static $array = null;
 		if ($array==null) {
 			$array = $this->loadedFiles;
-			foreach ($this->objectWriters as &$objectWriter) {
-				$array = array_merge($array,$objectWriter->getLocalFilesLoaded());
+			foreach ($this->classWriters as &$classWriter) {
+				$array = array_merge($array,$classWriter->getLocalFilesLoaded());
 			}
 		}
 		
@@ -120,10 +120,10 @@ class AjapWriter {
 	public function &getResultingString() {
 		if ($this->resultingString==null) {
 			$this->resultingString = $this->generateAjapCore()."\n";
-			if (count($this->objectWriters)>0) {
+			if (count($this->classWriters)>0) {
 				$code = "";
-				foreach ($this->objectWriters as &$objectWriter) {
-					$tmp = $objectWriter->getResultingString();
+				foreach ($this->classWriters as &$classWriter) {
+					$tmp = $classWriter->getResultingString();
 					if ($tmp!="") $code .= $tmp."\n";
 				}
 				if ($code!="")
