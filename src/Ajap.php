@@ -4,7 +4,7 @@ require_once dirname(__FILE__)."/Ajap/AjapReflector.php";
 require_once dirname(__FILE__)."/Ajap/AjapCache.php";
 require_once dirname(__FILE__)."/Ajap/AjapException.php";
 
-require_once dirname(__FILE__)."/Ajap/writer/ModuleWriter.php";
+require_once dirname(__FILE__)."/Ajap/writer/Writer.php";
 
 class Ajap {
 
@@ -276,7 +276,7 @@ class Ajap {
 		}
 
 		// Instantiate writer
-		$this->writer = new AjapModuleWriter( $this->options );
+		$this->writer = new AjapWriter( $this->options );
 
 		// Original request
 		$reqModule = $module;

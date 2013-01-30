@@ -5,7 +5,7 @@ require_once dirname(__FILE__)."/ObjectWriter.php";
 /**
  * Interface of a module writer
  */
-class AjapModuleWriter {
+class AjapWriter {
 	
 	/**
 	 * Initiating engine options reworked
