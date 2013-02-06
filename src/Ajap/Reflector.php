@@ -152,7 +152,7 @@ class AjapReflector {
 		$startIndex = count( get_declared_classes() );
 
 		foreach ( $toInclude as &$file ) {
-			require_once($file);
+			require_once( $file );
 		}
 		
 		$classes = get_declared_classes();

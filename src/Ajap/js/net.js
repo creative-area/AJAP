@@ -15,20 +15,22 @@ function pipeNoop() {
 var sendCache = {};
 
 Ajap.send = function ( moduleName, methodName, data, cache ) {
-	var url = URI + ( /\?/.test( Ajap.URI )? '&' : '?' ) + 'execute=' + moduleName + ":" + methodName,
-		strData = JSON.stringify( data ),
-		key, request;
+	var request,
+		reqParam = JSON.stringify({
+			module: moduleName,
+			method: methodName,
+			data: data
+		});
 	if ( cache ) {
-		key = url + "/" + strData;
-		if (( request = sendCache[ key ] )) {
+		if (( request = sendCache[ reqParam ] )) {
 			return request;
 		}
 	}
-	request = Ajap.ajax( url, "json", {
-		__ajap__data: strData
-	}).pipe( pipeSuccess, pipeError );
+	request = Ajap.ajax( URI, "json", {
+		execute: reqParam
+	} ).pipe( pipeSuccess, pipeError );
 	if ( cache ) {
-		sendCache[ key ] = request;
+		sendCache[ reqParam ] = request;
 	}
 	return request;
 };
@@ -135,9 +137,9 @@ Ajap.loadModule = function( module, data ) {
 		i = 0;
 		length = actual.length;
 		if ( length ) {
-			request = Ajap.ajax( URI + ( /\?/.test( Ajap.URI )? '&' : '?' ) + 'getModule=' + actual.join( "," ) , "script", {
-				"__ajap__data": JSON.stringify( data ),
-				"__ajap__already__loaded": loadedModulesString
+			request = Ajap.ajax( URI + ( /\?/.test( Ajap.URI )? '&' : '?' ) + 'module=' + actual.join( "," ) , "script", {
+				"data": JSON.stringify( data ),
+				"loaded": loadedModulesString
 			});
 			for ( ; i < length; i++ ) {
 				modules[ actual[i] ] = request;

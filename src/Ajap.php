@@ -207,11 +207,10 @@ class Ajap {
 		echo '{"e": ' . json_encode( $codes ) . '}';
 	}
 
-	public function execute( $action, $data, $callback = false ) {
+	public function execute( $module, $methodName, $data, $callback = false ) {
 
 		// Set current engine
 		Ajap::$currentEngine =& $this;
-		$this->_renderingModule = false;
 
 		set_error_handler( array( "Ajap", "errorHandler" ) );
 
@@ -221,15 +220,6 @@ class Ajap {
 			if ( !is_array( $data ) ) {
 				throw new Exception( "Data is not an array" );
 			}
-
-			// Get elements of action
-			$executeElements = explode( ":", $action );
-
-			if ( count( $executeElements ) !== 2 ) {
-				throw new Exception( "Illformed execute command '$action'" );
-			}
-
-			list( $module, $methodName ) = $executeElements;
 
 			$className = str_replace( "." , "_", $module );
 
@@ -322,8 +312,8 @@ class Ajap {
 			}
 
 			// Can be called using jsonp?
-			if ( $callback !== false && !$method->getAnnotation("CrossDomain") ) {
-				throw new Exception("Unauthorized");
+			if ( $callback && !$method->getAnnotation("CrossDomain") ) {
+				throw new Exception( "Unauthorized" );
 			}
 
 			// Call
@@ -360,47 +350,48 @@ class Ajap {
 		restore_error_handler();
 	}
 
-	public function handleRequest($header=true) {
+	public function handleRequest( $header = true ) {
 
 		global $_REQUEST;
     
-		$module = isset( $_REQUEST[ "getModule" ] ) ? $_REQUEST[ "getModule" ] : "";
+		$module = isset( $_REQUEST[ "module" ] ) ? $_REQUEST[ "module" ] : "";
 		$execute = isset( $_REQUEST[ "execute" ] ) ? $_REQUEST[ "execute" ] : "";
-		$callback = isset( $_REQUEST[ "callback" ] ) ? $_REQUEST[ "callback" ] : false;
+		$callback = isset( $_REQUEST[ "callback" ] ) ? $_REQUEST[ "callback" ] : "";
 
-		if ( $module == "" && $execute == "" ) {
+		if ( !$module && !$execute ) {
 			return false;
 		}
 
-		if ( $module != "" ) {
+		if ( $module ) {
 
-			if ( isset( $_REQUEST[ "__ajap__data" ] ) ) {
-				$data = json_decode( $_REQUEST["__ajap__data"], true );
-			} else {
-				$data = $_REQUEST;
-				unset( $data[ "getModule" ] );
-			}
+			$data = isset( $_REQUEST[ "data" ] ) ? json_decode( $_REQUEST[ "data" ], true ) : array();
 
 			if ( $header ) {
 				header( "Content-type: application/javascript; charset=" . $this->getOption( "encoding" ) );
 				ob_start( "ob_gzhandler" );
 			}
-			$alreadyLoaded =
-				isset( $_REQUEST[ "__ajap__already__loaded" ] )
-				? explode( ",", $_REQUEST[ "__ajap__already__loaded" ] )
+			$loaded =
+				isset( $_REQUEST[ "loaded" ] )
+				? explode( ",", $_REQUEST[ "loaded" ] )
 				: array();
-			$this->renderModule( $module, $data, $alreadyLoaded );
+			$this->renderModule( $module, $data, $loaded );
 
-		} else {
+			return true;
+
+		} else if ( $execute ) {
 
 			if ( $header ) {
-				header( "Content-Type: application/" . ( $callback === false ? "json" : "javascript" )
+				header( "Content-Type: application/" . ( $callback ? "json" : "javascript" )
 					. "; charset=" . $this->getOption( "encoding" ) );
-			}	
-			$data = isset( $_REQUEST[ "__ajap__data" ] ) ? json_decode( $_REQUEST[ "__ajap__data" ], true ) : array();
-			$this->execute( $execute, $data, $callback );
+			}
+			
+			$execute = json_decode( $execute, true );
+			
+			$this->execute( $execute[ "module" ], $execute[ "method" ], $execute[ "data" ], $callback );
+			
+			return true;
 		}
 
-		return true;
+		return false;
 	}
 }
