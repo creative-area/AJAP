@@ -314,7 +314,7 @@ class AjapClassWriter {
 	 */
 	private function generateRemoteJSONPMethod(&$method) {
 		
-		if ($this->class->getAnnotation("Virtual")
+		if ($this->class->getAnnotation("Abstract")
 			|| $this->class->getAnnotation("Volatile")) return "";
 			
 		// url
@@ -350,7 +350,7 @@ class AjapClassWriter {
 	 */
 	private function generateAjapMethod(&$method) {
 		
-		if ($this->class->getAnnotation("Virtual")
+		if ($this->class->getAnnotation("Abstract")
 			|| $this->class->getAnnotation("Volatile")) return "";
 		
 		if ($this->_implicits==null) {
@@ -396,8 +396,8 @@ class AjapClassWriter {
 	 */
 	private function generateMethod(&$method) {
 				
-		// Is it Virtual?
-		if ($method->getAnnotation("Virtual")) return "";
+		// Is it Abstract?
+		if ($method->getAnnotation("Abstract")) return "";
 		
 		// Is it non-inherited and are we the declaring class?
 		if ($method->getAnnotation("NotInherited")
@@ -442,7 +442,7 @@ class AjapClassWriter {
 		if ($property->getAnnotation("Inherited")
 			&& $property->getDeclaringClass()!=$this->class) return "";
 			
-		if ($this->class->getAnnotation("Virtual")
+		if ($this->class->getAnnotation("Abstract")
 			&& !$property->getAnnotation("Inherited")) return "";
 		
 		$name = $property->getName();
@@ -581,12 +581,12 @@ class AjapClassWriter {
 		
 		$object = $this->generateObjectRelated();
 		if ($object!="") $object .= "\n";
-		else if (count($this->init)==0 || $this->class->getAnnotation("Virtual")) return "";
+		else if (count($this->init)==0 || $this->class->getAnnotation("Abstract")) return "";
 
 		$initThis = ($object=="")?'{}':'$__ajap__object';
 
 		$code = "";
-		if (!$this->class->getAnnotation("Virtual")) {
+		if (!$this->class->getAnnotation("Abstract")) {
 			foreach ($this->init as &$init) {
 				$tmp = $this->generateAnonymousFunction(
 					$this->generateCodeMethodBody(OBJECT_WRITER_JS,$init)

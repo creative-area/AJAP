@@ -4,12 +4,12 @@ class AjapAnnotations {
 
 	private static $definitions = array(
 		"Class" => array(
+			"Abstract" => "flag",
 			"Ajap" => "flag",
 			"Alias" => "strings",
 			"CSS" => "strings",
 			"DependsOn" => "strings",
 			"JS" => "strings",
-			"Virtual" => "flag",
 			"Volatile" => "flag",
 		),
 		"Method" => array(
