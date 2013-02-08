@@ -251,15 +251,11 @@ console.log( Service.getCode );
 // => undefined
 ```
 
-# List of Annotations
-
-Annotations are listed by target of the annotation since some annotations have different semantics and types depending on said target.
-
-## Class
+# Class Annotations
 
 There is an exact correspondance between classes and services in AJAP. So we will use the terms `class` and `service` interchangeably in this section.
 
-### Abstract (Flag)
+## Abstract (Flag)
 
 Flags the service as "abstract". While it can still be used as a base class which another service can extend, no JavaScript stub will be generated and it is impossible to remotely call any of its methods.
 
@@ -319,13 +315,13 @@ LogHello.log();
 // => "hello"
 ```
 
-### Ajap (Flag)
+## Ajap (Flag)
 
 This is a mandatory flag for any service. If it's missing, Ajap will not recognize the class as a service, will not generate a JavaScript stub for it and will not inspect its inheritance chain and dependencies.
 
 The flag acts as a security protection and makes it possible for services to inherit from non-service classes.
 
-### Alias (Services)
+## Alias (Services)
 
 Creates an alias for the service client-side.
 
@@ -347,7 +343,7 @@ console.log( window.OriginalName === window.AnotherName );
 // => true
 ```
 
-### CSS (URLs)
+## CSS (URLs)
 
 Lists CSS resources to be loaded before the service is initiated. For local URLs, the actual content of the targeted file is embedded within the service itself: beware of relative URLs within the CSS file!
 
@@ -369,7 +365,7 @@ generates a JavaScript stub that will create (in that order):
 * a `<style/>` node which text content is the content of `my/file3.css`,
 * a `<style/>` node which text content is the content of `my/file4.css`.
 
-### DependsOn (Services)
+## DependsOn (Services)
 
 Lists services the current service depends on.
 
@@ -386,7 +382,7 @@ class Service {}
 
 ensures that, everytime Ajap is asked for `Service`, `My.Other.Service` and `Another.Service` are served first.
 
-### JS (URLs)
+## JS (URLs)
 
 Lists JS resources to be executed before the service is initiated. For local URLs, the actual content of the targeted file is embedded within the service itself: beware of global var declarations that wouldn't be applied properly!
 
@@ -409,7 +405,7 @@ generates a JavaScript stub that:
 * **then** will execute the code embedded from `my/file4.js`,
 * **then and only then** will initiate the service itself.
 
-### Volatile (Flag)
+## Volatile (Flag)
 
 Tells Ajap not to generate the global variable corresponding to the service.
 
@@ -431,9 +427,9 @@ console.log( window.Volatile );
 // => undefined
 ```
 
-## Method
+# Method Annotations
 
-### Cached (Flag)
+## Cached (Flag)
 
 Tells Ajap to cache the result of remote executions of the method for a given set of arguments.
 
@@ -467,23 +463,23 @@ $.when( Service.cached( "param2" ), Service.cached( "param2" ) ).done(function( 
 });
 ```
 
-### CrossDomain (Flag)
+## CrossDomain (Flag)
 
 *Alias of XDomain*
 
 Flags the method as suitable for cross-domain access. Web pages from another domain will be able to request this method using JSONP.
 
-### CSS (Flag)
+## CSS (Flag)
 
 When the method is pointed to by a `@CSS` annotation on the declaring class, tells Ajap to consider the returned string as actual CSS code, not a URL.
 
-### Dynamic (Flag)
+## Dynamic (Flag)
 
 *only useful for methods that generate code or URLs*
 
 Tells Ajap to re-generate the method everytime the service is requested.
 
-### Init (Flag)
+## Init (Flag)
 
 Marks a method as generating initialization code. The method will not be generated in the JavaScript stub.
 
@@ -513,19 +509,19 @@ console.log( Service.testInit );
 // => true
 ```
 
-### JS (Flag)
+## JS (Flag)
 
 When the method is pointed to by a `@JS` annotation on the declaring class, tells Ajap to consider the returned string as actual JavaScript code, not a URL.
 
-### Local (Flag)
+## Local (Flag)
 
 Marks the method as "local" which will make it behave as if it was private: it will not be defined in the JavaScript stub and will not be executable remotely.
 
-### NonBlocking (Flag)
+## NonBlocking (Flag)
 
 Sessions in PHP are blocking: a client cannot execute more than one script concurrently because of that. In Ajap terms, it means no more than one method can be executed remotely at a given time. For optimization reasons or when data consistency is not an issue, use `@NonBlocking` so that the session is closed before executing the method thus not blocking the execution of another method in parallel.
 
-### Post (Flag)
+## Post (Flag)
 
 Generates a remotely executable method that accepts a `<form/>` element client-side and an array representing the form's serialization server-side.
 
@@ -564,9 +560,9 @@ Service.post( document.getElementById( "my-form" ) ).done(function( result ) {
 });
 ```
 
-### RemoteJSONP (URL)
+## RemoteJSONP (URL)
 
-### Template (Object)
+## Template (Object)
 
 Marks a method as generating text data based on a template.
 
@@ -640,20 +636,20 @@ console.log( Service.templateNotNormalized() );
 ```
 
 
-### XDomain (Flag)
+## XDomain (Flag)
 
 *Alias of CrossDomain*
 
 Flags the method as suitable for cross-domain access. Web pages from another domain will be able to request this method using the JSONP protocol.
 
-## Property
+# Property Annotations
 
-### Dynamic (Flag)
+## Dynamic (Flag)
 
 Tells Ajap to re-generate the property everytime the service is requested.
 
-### Implicit (Flag)
+## Implicit (Flag)
 
-### Local (Flag)
+## Local (Flag)
 
 Marks the property as "local" which will make it behave as if it was private: it will not be defined in the JavaScript stub.
