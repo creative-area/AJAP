@@ -270,7 +270,7 @@ Another use-case is when the service has value as-is but implements logic client
 So, the following PHP classes:
 
 ```php
-/*
+/**
  * @Ajap
  * @Abstract
  */
@@ -295,7 +295,7 @@ class Log {
 	}
 }
 
-/*
+/**
  * @Ajap
  */
 class LogHello extends Log {
@@ -332,7 +332,7 @@ Creates an alias for the service client-side.
 So, the following PHP class:
 
 ```php
-/*
+/**
  * @Ajap
  * @Alias AnotherName
  */
@@ -416,7 +416,7 @@ Tells Ajap not to generate the global variable corresponding to the service.
 So, the following PHP class:
 
 ```php
-/*
+/**
  * @Ajap
  * @Volatile
  */
@@ -440,7 +440,7 @@ Tells Ajap to cache the result of remote executions of the method for a given se
 For instance, the following declaration:
 
 ```php
-/*
+/**
  * @Ajap
  */
 class Service {
@@ -490,7 +490,7 @@ Marks a method as generating initialization code. The method will not be generat
 For instance, the following declaration:
 
 ```php
-/*
+/**
  * @Ajap
  */
 class Service {
@@ -527,12 +527,12 @@ Sessions in PHP are blocking: a client cannot execute more than one script concu
 
 ### Post (Flag)
 
-Generates a remotely executable method that accepts a `<form/>` element client-side and an array representing the form's serialization client side.
+Generates a remotely executable method that accepts a `<form/>` element client-side and an array representing the form's serialization server-side.
 
 For instance, the following service:
 
 ```php
-/*
+/**
  * @Ajap
  */
 class Service {
@@ -575,7 +575,7 @@ The template format is akin to PHP and can interchangeably use <? ?>, <# #> or <
 For instance, the following declaration:
 
 ```php
-/*
+/**
  * @Ajap
  */
 class Service {
@@ -608,7 +608,7 @@ console.log( Service.template( "John" ) );
 By default, whitespaces are trimmed and normalized. You can preserve whitespacing by setting the `normalizeSpace` field to `false`. So, the following service:
 
 ```php
-/*
+/**
  * @Ajap
  */
 class Service {
