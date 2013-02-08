@@ -261,7 +261,7 @@ Flags the service as "abstract". While it can still be used as a base class whic
 
 This flag is extremely useful if the underlying PHP class is abstract itself since Ajap will never instantiate an `@Abstract` class.
 
-Another use-case is when the service has value as-is but implements logic client-side and/or server-side that is the base of several other services.
+Another use-case is when the service has no value as-is but implements logic client-side and/or server-side that is the base of several other services.
 
 So, the following PHP classes:
 
@@ -280,7 +280,7 @@ class Log {
 		$this->message = $message;
 	}
 	
-	/*
+	/**
 	 * Logs the message
 	 * @JS
 	 */
@@ -345,7 +345,7 @@ console.log( window.OriginalName === window.AnotherName );
 
 ## CSS (URLs)
 
-Lists CSS resources to be loaded before the service is initiated. For local URLs, the actual content of the targeted file is embedded within the service itself: beware of relative URLs within the CSS file!
+Lists CSS resources to be loaded before the service is initialized. For local URLs, the actual content of the targeted file is embedded within the service itself: beware of relative URLs within the CSS file!
 
 The following declaration:
 
@@ -384,7 +384,7 @@ ensures that, everytime Ajap is asked for `Service`, `My.Other.Service` and `Ano
 
 ## JS (URLs)
 
-Lists JS resources to be executed before the service is initiated. For local URLs, the actual content of the targeted file is embedded within the service itself: beware of global var declarations that wouldn't be applied properly!
+Lists JS resources to be executed before the service is initialized. For local URLs, the actual content of the targeted file is embedded within the service itself: beware of global var declarations that wouldn't be applied properly!
 
 The following declaration:
 
@@ -443,7 +443,7 @@ class Service {
 	/**
 	 * @Cached 
 	 */
-	public function cached( $arg1, $arg2 ) {
+	public function cached( $arg ) {
 		return rand();
 	}
 }
@@ -452,12 +452,12 @@ class Service {
 Will yield the following behaviour in JavaScript:
 
 ```js
-$.when( Service.cached( "param1" ), Service.cached( "param1" ) ).done(function( v1, v2 ) {
+$.when( Service.cached( "arg1" ), Service.cached( "arg1" ) ).done(function( v1, v2 ) {
 	console.log( v1 === v2 );
 	// => true
 });
 
-$.when( Service.cached( "param2" ), Service.cached( "param2" ) ).done(function( v1, v2 ) {
+$.when( Service.cached( "arg2" ), Service.cached( "arg2" ) ).done(function( v1, v2 ) {
 	console.log( v1 === v2 );
 	// => true
 });
@@ -467,15 +467,13 @@ $.when( Service.cached( "param2" ), Service.cached( "param2" ) ).done(function( 
 
 *Alias of XDomain*
 
-Flags the method as suitable for cross-domain access. Web pages from another domain will be able to request this method using JSONP.
+Flags the method as suitable for cross-domain access. Web pages from another domain will be able to request this method using the JSONP protocol.
 
 ## CSS (Flag)
 
 When the method is pointed to by a `@CSS` annotation on the declaring class, tells Ajap to consider the returned string as actual CSS code, not a URL.
 
 ## Dynamic (Flag)
-
-*only useful for methods that generate code or URLs*
 
 Tells Ajap to re-generate the method everytime the service is requested.
 
@@ -494,7 +492,9 @@ class Service {
 	 * @Init 
 	 */
 	public function init() {
+		return '
 		this.testInit = true;
+		';
 	}
 }
 ```
