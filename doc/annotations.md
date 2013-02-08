@@ -590,7 +590,7 @@ class Service {
 	 */
 	public function template( $name ) {
 		return '
-		<# this.$messages.forEach(function( message ) {
+		<# this.$messages.forEach(function( message ) { #>
 			<#= message #>, <#= $name #>.
 		<# }) #>
 		';
