@@ -13,6 +13,7 @@ class AjapAnnotations {
 			"Volatile" => "flag",
 		),
 		"Method" => array(
+			"Cached" => "flag",
 			"CrossDomain" => "flag",
 			"CSS" => "flag",
 			"Dynamic" => "flag",
