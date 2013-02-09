@@ -14,11 +14,11 @@ function pipeNoop() {
 
 var sendCache = {};
 
-Ajap.send = function ( moduleName, methodName, data, cache ) {
+Ajap.send = function ( service, method, data, cache ) {
 	var request,
 		reqParam = JSON.stringify({
-			module: moduleName,
-			method: methodName,
+			service: service,
+			method: method,
 			data: data
 		});
 	if ( cache ) {
@@ -35,9 +35,9 @@ Ajap.send = function ( moduleName, methodName, data, cache ) {
 	return request;
 };
 
-Ajap.post = function ( moduleName, methodName, data, cache ) {
+Ajap.post = function ( service, method, data, cache ) {
 	data[ 0 ] = Ajap.serializeForm( data[ 0 ] );
-	return Ajap.send( moduleName, methodName, data, cache );
+	return Ajap.send( service, method, data, cache );
 };
 
 Ajap.jsonp = function( url, object, cache, filter ) {
@@ -74,75 +74,74 @@ function getObject( expr, del ) {
 	}
 }
 
-// ################################################## MODULE LOADER
+// ################################################## SERVICE LOADER
 
-// Keep track of loadedModules
-var loadedModules = {},
-	loadedModulesString = "";
+// Keep track of loaded services
+var loadedServices = {},
+	loadedServicesString = "";
 
-// Set a class as loaded
-Ajap._classIsLoaded = function( moduleName ) {
-	var tmp = loadedModules[ moduleName ];
-	if ( ! tmp ) {
-		loadedModules[ moduleName ] = true;
-		if ( loadedModulesString === "" ) {
-			loadedModulesString = moduleName;
+// Registers a service
+Ajap._registerService = function( service, construct ) {
+	if ( !loadedServices[ service ] ) {
+		loadedServices[ service ] = true;
+		if ( loadedServicesString === "" ) {
+			loadedServicesString = service;
 		} else {
-			loadedModulesString += "," + moduleName;
+			loadedServicesString += "," + service;
 		}
+		construct();
 	}
-	return !!tmp;
 };
 
-// Unload a module
-Ajap.unloadModule = function( moduleName ) {
-	var object = getObject( moduleName, true );
+// Unload a service
+Ajap.unloadService = function( service ) {
+	var object = getObject( service, true );
 	if ( object ) {
 		if ( object.__ajap__onunload ) {
 			object.__ajap__onunload();
 		}
-		delete loadedModules[ moduleName ];
-		delete module[ moduleName ];
+		delete loadedServices[ service ];
+		delete services[ service ];
 		var tmp = [],
 			name;
-		for ( name in loadedModules ) {
-			if ( loadedModules[ name ] ) {
-				tmp.push( loadedModules[ name ] );
+		for ( name in loadedServices ) {
+			if ( loadedServices[ name ] ) {
+				tmp.push( loadedServices[ name ] );
 			}
 		}
-		loadedModulesString = tmp.join(",");
+		loadedServicesString = tmp.join(",");
 	}
 };
 
-var modules = {};
+var services = {};
 
-// Load a module
-Ajap.loadModule = function( module, data ) {
-	if ( module ) {
-		if ( Ajap.type( module ) !== "array" ) {
-			module = ( "" + module ).split( "," );
+// Load a service
+Ajap.loadService = function( service, data ) {
+	if ( service ) {
+		if ( Ajap.type( service ) !== "array" ) {
+			service = ( "" + service ).split( "," );
 		}
 		var i = 0,
-			length = module.length,
+			length = service.length,
 			request,
 			actual = [],
 			promises = [];
 		for( ; i < length; i++ ) {
-			if ( modules[ module[i] ] ) {
-				promises.push( modules[ module[i] ] );
+			if ( services[ service[i] ] ) {
+				promises.push( services[ service[i] ] );
 			} else {
-				actual.push( module[i] );
+				actual.push( service[i] );
 			}
 		}
 		i = 0;
 		length = actual.length;
 		if ( length ) {
-			request = Ajap.ajax( URI + ( /\?/.test( Ajap.URI )? '&' : '?' ) + 'module=' + actual.join( "," ) , "script", {
+			request = Ajap.ajax( URI + ( /\?/.test( Ajap.URI )? '&' : '?' ) + 'service=' + actual.join( "," ) , "script", {
 				"data": JSON.stringify( data ),
-				"loaded": loadedModulesString
+				"loaded": loadedServicesString
 			});
 			for ( ; i < length; i++ ) {
-				modules[ actual[i] ] = request;
+				services[ actual[i] ] = request;
 			}
 			promises.push( request );
 		}

@@ -51,8 +51,8 @@ test( "@Dynamic", function() {
 	var dynamic = Simple.$dynamic,
 		dynamicMethod = Simple.dynamicMethod();
 	window.TestSimpleInit = true;
-	Ajap.unloadModule( "Simple" );
-	Ajap.loadModule( "Simple" ).done(function() {
+	Ajap.unloadService( "Simple" );
+	Ajap.loadService( "Simple" ).done(function() {
 		strictEqual( window.TestSimpleInit, undefined, "everything in order" );
 		notStrictEqual( dynamic, Simple.$dynamic, "dynamic property is re-computed" );
 		notStrictEqual( dynamicMethod, Simple.dynamicMethod(), "dynamic method is re-generated" );
@@ -102,7 +102,7 @@ test( "@Post", function() {
 test( "@Volatile", function() {
 	expect( 3 );
 	stop();
-	Ajap.loadModule( "Simple.Volatile" ).done(function() {
+	Ajap.loadService( "Simple.Volatile" ).done(function() {
 		ok( !( Simple.hasOwnProperty( "Volatile" ) ), "Volatile is not in Simple after init" );
 		start();
 	});

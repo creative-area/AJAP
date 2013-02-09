@@ -354,15 +354,15 @@ class Ajap {
 
 		global $_REQUEST;
     
-		$module = isset( $_REQUEST[ "module" ] ) ? $_REQUEST[ "module" ] : "";
+		$service = isset( $_REQUEST[ "service" ] ) ? $_REQUEST[ "service" ] : "";
 		$execute = isset( $_REQUEST[ "execute" ] ) ? $_REQUEST[ "execute" ] : "";
 		$callback = isset( $_REQUEST[ "callback" ] ) ? $_REQUEST[ "callback" ] : "";
 
-		if ( !$module && !$execute ) {
+		if ( !$service && !$execute ) {
 			return false;
 		}
 
-		if ( $module ) {
+		if ( $service ) {
 
 			$data = isset( $_REQUEST[ "data" ] ) ? json_decode( $_REQUEST[ "data" ], true ) : array();
 
@@ -374,7 +374,7 @@ class Ajap {
 				isset( $_REQUEST[ "loaded" ] )
 				? explode( ",", $_REQUEST[ "loaded" ] )
 				: array();
-			$this->renderModule( $module, $data, $loaded );
+			$this->renderModule( $service, $data, $loaded );
 
 			return true;
 
@@ -387,7 +387,7 @@ class Ajap {
 			
 			$execute = json_decode( $execute, true );
 			
-			$this->execute( $execute[ "module" ], $execute[ "method" ], $execute[ "data" ], $callback );
+			$this->execute( $execute[ "service" ], $execute[ "method" ], $execute[ "data" ], $callback );
 			
 			return true;
 		}

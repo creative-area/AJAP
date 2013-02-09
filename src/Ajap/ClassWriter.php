@@ -82,7 +82,7 @@ class AjapClassWriter {
 		$len = strlen($this->className);
 		$dec = $len%2;
 		$nChars = floor((76-$len)/2);
-		return "\n\n//".substr($crunch,0,$nChars)." $this->className ".substr($crunch,0,$nChars+$dec)."\n";
+		return "//".substr($crunch,0,$nChars)." $this->className ".substr($crunch,0,$nChars+$dec)."\n";
 	}
 	
 	/**
@@ -468,11 +468,12 @@ class AjapClassWriter {
 		
 		$module = str_replace( "_", ".", $this->class->getName() );
 		
-		$setLoaded = "!Ajap._classIsLoaded('$module')";
-		
-		$code = $this->generateTitleComment()
-				.$this->generateComment($this->class)."\n"
-			.($code!=""?"if ($setLoaded){".$code."};":"$setLoaded;")."\n";
+		$code =
+			"\n\nAjap._registerService( \"$module\" , function() {\n"
+			.$this->generateTitleComment()
+			.$this->generateComment($this->class)."\n"
+			.$code
+			."});\n";
 			
 		if ($this->cache) {
 			$require = "";
