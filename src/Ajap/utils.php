@@ -168,3 +168,21 @@ function ajap_methodExpression( $expr ) {
 	}
 	return $expr;
 }
+
+function ajap_coreJS( $filename, &$options, &$files ) {
+	array_push( $files, $filename );
+	
+	$dir = dirname( $filename );
+	
+	$code = file_get_contents( $filename );
+	
+	$code = preg_replace_callback( "/<<(.*?)>>/", function( $match ) use( &$options ) {
+		return $options[ $match[ 1 ] ];
+	}, $code );
+	
+	$code = preg_replace_callback( "/\\binclude\\s*\\(([^)]*?)\\)\\s*;/", function( $match ) use( $dir, &$options, &$files ) {
+		return ajap_coreJS( $dir . "/" . json_decode( $match[ 1 ] ), $options, $files );
+	}, $code );
+	
+	return $code;
+}

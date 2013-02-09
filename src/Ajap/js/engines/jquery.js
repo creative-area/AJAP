@@ -1,5 +1,5 @@
 if ( !jQuery.jsonp ) {
-//@include jsonp.min.js
+	include( "jquery/jsonp.min.js" );
 }
 
 jQuery.extend( Ajap, {

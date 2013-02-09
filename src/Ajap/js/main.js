@@ -1,11 +1,14 @@
 window.Ajap || ( window.Ajap = (function( window, Ajap, URI ) {
 
-//@include json3.min.js
+include( "include/json3.min.js" );
 
-//@engine
+include( "engines/<<engine>>.js" );
 
-//@extensions
+include( "core.js" );
+include( "loader.js" );
+include( "net.js" );
+include( "style.js" );
 
 return Ajap;
 
-})( window, {}, @URI ) );
+})( window, {}, "<<uri>>" ) );
