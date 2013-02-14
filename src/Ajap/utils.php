@@ -14,7 +14,7 @@ function ajap_resolveURI( $uri, $base_uri, $base_dir ) {
 		return "!$base_dir" . DIRECTORY_SEPARATOR . $uri;
 	}
 
-	if ( preg_match( "#^https?//#", $uri ) ) {
+	if ( preg_match( "#^https?\\://#", $uri ) ) {
 		return $uri;
 	}
 
