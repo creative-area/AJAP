@@ -93,8 +93,8 @@ function ajap_moduleFile( $path, $module, $extension = "php" ) {
 	return $cache[ $path ][ $module ];
 }
 
-function ajap_compileTemplate( $str, $separator, $normalizeSpace ) {
-	$code = "var __ajap__cumulator = [];";
+function ajap_compileTemplate( $str, $normalizeSpace ) {
+	$code = "var __ajap__cumulator = \"\";";
 	$parts = preg_split( "/<(js)?[?#@]|[?#@]>/", $str );
 	$cumul = array();
 	$flush = function() use ( &$code, &$cumul ) {

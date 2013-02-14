@@ -180,9 +180,9 @@ class AjapClassWriter {
 		if ($method->getAnnotation("Template")) {
 			$a = $method->getAnnotation("Template");
 			if ($dynamic) {
-				$code = "ajap_compileTemplate($code,\"\\n\",".($a->normalizeSpace?"true":"false").")";
+				$code = "ajap_compileTemplate($code,".($a->normalizeSpace?"true":"false").")";
 			} else {
-				$code = ajap_compileTemplate($code,"\n",$a->normalizeSpace);
+				$code = ajap_compileTemplate($code,$a->normalizeSpace);
 			}
 		}
 		
