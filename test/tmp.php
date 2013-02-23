@@ -26,7 +26,9 @@ echo "\n//--------------------------- SERVICE \n\n";
 
 $jsWriter =& ajap_getWriter( "JS", __DIR__ . DIRECTORY_SEPARATOR . "cache" );
 
-echo ajap_beautifyJS( $jsWriter->service( $raw[ "service" ] ), true );
+echo ajap_beautifyJS( $jsWriter->services( array(
+	"Simple" => $raw[ "service" ],
+) ), true );
 
 echo "\n//--------------------------- DYNAMIC SOURCE \n\n";
 

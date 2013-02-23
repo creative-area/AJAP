@@ -1,12 +1,18 @@
 << PHP >>
 
-//:element
-$writer->METHOD( `ARGS`,, )
+//: dependency
+$deps[ "THIS" ] = true
 
-//: main
+//:element
+array( "METHOD", `ARGS` )
+
+//: @main
 <?php
 
-$writer = new AjapServiceWriter( AjapClass::get( "NAME" ) );
-$output[ "NAME" ] = array( 'ts' => "TS", 'data' => array(
-DATA/element:,
+?SERVICE.PARENT
+$deps[ "SERVICE.PARENT" ] = true;
+??
+$data[ "NAME" ] = array( 'ts' => "TS", 'data' => array(
+DATA/element,,
 ) );
+?SERVICE.DEPENDENCY/dependency;;

@@ -9,6 +9,8 @@ if ( !jQuery.jsonp ) {
 include( "lib/utils.js" );
 include( "lib/ajax.js" );
 
+include( "core/exec.js" );
+include( "core/instantiateService.js" );
 include( "core/load.js" );
 
 return {

@@ -1,5 +1,3 @@
-include( "instantiateService.js" );
-
 function load() {
 	return jQuery.when.apply( jQuery, map( arguments, loadOne ) );
 }

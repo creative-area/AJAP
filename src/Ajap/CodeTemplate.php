@@ -15,7 +15,9 @@ class AjapCodeTemplate {
 				if ( $i || $keepFirst ) {
 					$result[] = $prev;
 				}
-				$item = array();
+				$item = array(
+					"*" => $match[ 0 ][ 0 ],
+				);
 				foreach( $parts as $i => $name ) {
 					$item[ $name ] = isset( $match[ $i + 1 ] ) ? trim( $match[ $i + 1 ][ 0 ] ) : "";
 				}
@@ -35,30 +37,48 @@ class AjapCodeTemplate {
 		$output = array();
 		for( $i = 0, $length = count( $body ); $i < $length; $i++ ) {
 			$part =& $body[ $i ];
-			if ( is_array( $part ) && $part[ "conditional" ] ) {
+			if ( is_array( $part ) && $part[ "if" ] ) {
 				$dup = $part[ "loop" ] || $part[ "method" ] ? array_merge( $part, array(
-					"conditional" => ""
+					"if" => ""
 				) ) : null;
 				$i++;
 				if ( $i < $length && is_string( $body[ $i ] ) ) {
 					$body[ $i ] = preg_replace( '/^[ \t]+/', '', $body[ $i ] );
 				}
 				$then = array();
+				$else = array();
 				if ( $dup ) {
 					$then[] = $dup;
 				}
+				$target =& $then;
 				$after = "";
+				$level = 0;
 				for ( ; $i < $length; $i++ ) {
 					$item =& $body[ $i ];
-					if ( is_string( $item ) && ( $pos = strpos( $item, "\n" ) ) !== FALSE ) {
-						$then[] = substr( $item, 0, $pos + 1 );
-						$after = substr( $item, $pos + 1 );
-						break;
-					} else {
-						$then[] = $item;
+					if ( is_array( $item ) ) {
+						if ( !$level ) {
+							if ( $target === $then && $item[ "orElse" ] ) {
+								$target =& $else;
+								continue;
+							} else if ( $item[ "endif" ] ) {
+								break;
+							}
+						} else if ( $item[ "if" ] ) {
+							$level++;
+						} else if ( $item[ "endif" ] ) {
+							$level--;
+						}
 					}
+					$target[] =& $item;
+				}
+				if ( !count( $then ) ) {
+					$then = array( "" );
+				}
+				if ( !count( $else ) ) {
+					$else = array( "" );
 				}
 				$part[ "then" ] = $this->parseConds( $then );
+				$part[ "else" ] = $this->parseConds( $else );
 				$output[] = $part;
 				if ( $after ) {
 					$output[] = $after;
@@ -70,29 +90,48 @@ class AjapCodeTemplate {
 		return $output;
 	}
 
+	private function &parseEscaped( &$body ) {
+		$output = array();
+		$count = 0;
+		foreach( $body as $part ) {
+			if ( is_array( $part ) && $part[ "escaped" ] ) {
+				$part = substr( $part[ "*" ], 1 );
+			}
+			if ( $count && is_string( $part ) && is_string( $output[ $count - 1 ] ) ) {
+				$output[ $count - 1 ] .= $part;
+			} else {
+				$output[ $count++ ] = $part;
+			}
+		}
+		return $output;
+	}
+
 	private function &parse( &$src ) {
 		$mode = array();
 		preg_match( '/<<\s*(js|php)\s*>>/i', $src, $mode );
 		$mode = isset( $mode[ 1 ] ) ? strtolower( $mode[ 1 ] ) : "js";
 		$src = str_replace( "\r\n", "\n", $src );
-		$parts = $this->split( '#//\:([^\n]+)\n#', $src, array( "name" ) );
+		$parts = $this->split( '#//\:\s*([^\n]+)\s*\n#', $src, array( "name" ) );
 		$output = array();
 		for( $i = 0, $length = count( $parts ); $i < $length; $i += 2 ) {
 			if ( !( $i % 2 ) ) {
 				$body = rtrim( $parts[ $i + 1 ] ) . "\n";
-				$output[ $parts[ $i ][ "name" ] ] = $this->parseConds( $this->split(
-					'#(["`]?)((?:\?!?)?)(@|[A-Z][A-Z_]+)\1(?:\{([^\}\n]*)\})?(?:/([a-z][a-z_]+))?(;;|,,|:,)?#',
+				$output[ $parts[ $i ][ "name" ] ] = $this->parseConds( $this->parseEscaped( $this->split(
+					'#(["`]?)((?:\?!?)?)(\\\\?)(@|[A-Z](?:[A-Z_]|[.][A-Z])+)\1(?:\{([^\}\n]*)\})?(?:/([a-z][a-z_]+))?(;;|,,|:,)?|(\?:)|(\?\?)#',
 					$body,
 					array(
 						"encode",
-						"conditional",
+						"if",
+						"escaped",
 						"name",
 						"compare",
 						"method",
-						"loop"
+						"loop",
+						"orElse",
+						"endif",
 					),
 					true
-				) );
+				) ) );
 			}
 		}
 		$return = array(
@@ -123,7 +162,7 @@ class AjapCodeTemplate {
 	private function writeLoop( &$item ) {
 		return '$this->_loop( ' . implode( ", ", array( 
 			$this->writeItem( $item ),
-			var_export( $item[ "method" ], true ),
+			var_export( $item[ "method" ] ? "__" . $item[ "method" ] : $item[ "method" ], true ),
 			var_export( !!$item[ "encode" ], true ),
 			var_export( $item[ "loop" ] === ":,", true ),
 			var_export( substr( $item[ "loop" ], 1 ), true ),
@@ -136,9 +175,11 @@ class AjapCodeTemplate {
 			'@' => '$index',
 		);
 		$name = $item[ "name" ];
-		return isset( $predefined[ $name ] ) ?
-			$predefined[ $name ] :
-			'$data[ ' . var_export( strtolower( $name ), true ) . ' ]';
+		if ( isset( $predefined[ $name ] ) ) {
+			return $predefined[ $name ];
+		}
+		$name = str_replace( ".", "' ][ '", strtolower( $name ) );
+		return "\$data[ '$name' ]";
 	}
 	
 	private function writeBody( &$body ) {
@@ -146,9 +187,9 @@ class AjapCodeTemplate {
 		foreach( $body as &$item ) {
 			if ( is_string( $item ) ) {
 				$output[] = var_export( $item, true );
-			} else if ( $item[ "conditional" ] ) {
+			} else if ( $item[ "if" ] ) {
 				$tmp = $this->writeItem( $item );
-				$not = substr( $item[ "conditional" ], 1 );
+				$not = substr( $item[ "if" ], 1 );
 				$notOrEqual = $not ? $not : "=";
 				$output[] = '( ' . $not . 'isset( ' . $tmp . ' ) ' .
 					(
@@ -156,12 +197,15 @@ class AjapCodeTemplate {
 						? ( "&& ( $tmp $notOrEqual= " . var_export( $item[ "compare" ], true ) . " )" )
 						: ""
 					) .
-					' ? ' .
-					$this->writeBody( $item[ "then" ] ). ' : "" )';
+					' ? ( ' .
+					$this->writeBody( $item[ "then" ] ) .
+					' ) : ( ' .
+					$this->writeBody( $item[ "else" ] ) .
+					' ) )';
 			} else if ( $item[ "loop" ] ) {
 				$output[] = $this->writeLoop( $item );
 			} else if ( $item[ "method" ] ) {
-				$output[] = '$this->' . $item[ "method" ] . '( ' . $this->writeItem( $item ) . ', $index )';
+				$output[] = '$this->__' . $item[ "method" ] . '( ' . $this->writeItem( $item ) . ', $index )';
 			} else if ( $item[ "encode" ] ) {
 				$output[] = $this->writeEncode( $this->writeItem( $item ) );
 			} else if ( $item ) {
@@ -172,7 +216,6 @@ class AjapCodeTemplate {
 	}
 	
 	private function write( $className, &$parsed ) {
-
 		$this->mode =& $this->modes[ $parsed[ "mode" ] ];
 
 		$output = '
@@ -207,11 +250,22 @@ private function _loop( &$array, $method, $encode, $field, $join ) {
 }
 ';
 		foreach( $parsed[ "tree" ] as $name => &$body ) {
+			$match = array();
+			if (( $public = preg_match( '/^@(.+)/', $name, $match ) )) {
+				$name = $match[ 1 ];
+			}
 			$output .= '
-public function ' . $name . '( &$data, $index = null ) {
+private function __' . $name . '( &$data, $index = null ) {
 	return ' . $this->writeBody( $body ) . ';
 }
 ';
+			if ( $public ) {
+				$output .= '
+public function ' . $name . '( $data ) {
+	return $this->__' . $name . '( $data );
+}
+';
+			}
 		}
 
 		return "<?php

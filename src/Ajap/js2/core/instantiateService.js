@@ -1,5 +1,3 @@
-include( "exec.js" );
-
 function serviceProxy( name ) {
     return {
         exec: function( method, args, cache ) {

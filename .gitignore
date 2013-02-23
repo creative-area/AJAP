@@ -1,4 +1,4 @@
-test/cache/__ajap_cache
+test/cache/*
 .project
 .settings
 .buildpath

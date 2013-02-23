@@ -63,13 +63,13 @@ class AjapServiceWriter {
 			: $method->invoke( $this->getInstance() );
 	}
 
-	private function property( $name ) {
+	public function property( $name ) {
 		return array(
 			"value" => $this->getInstance()->$name,
 		);
 	}
 
-	private function Template( $name ) {
+	public function Template( $name ) {
 		$method =& $this->getMethod( $name );
 		return array(
 			"code" => ajap_compileTemplate(
@@ -80,7 +80,7 @@ class AjapServiceWriter {
 		);
 	}
 	
-	private function JS( $name ) {
+	public function JS( $name ) {
 		$method =& $this->getMethod( $name );
 		return array(
 			"code" => $this->callMethod( $method ),
@@ -201,7 +201,7 @@ class AjapServiceWriter {
 		}
 		
 		return array(
-			"ts" => date( "YmdHis" ),
+			"ts" => ( new DateTime() )->format( "YmdHisu" ),
 			"name" => $class->name,
 			"data" => &$this->dynamic,
 			"service" => &$service,

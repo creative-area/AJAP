@@ -1,5 +1,3 @@
-include( "ajax.js" );
-
 var execKey = 0;
 
 function exec( module, method, args, cache ) {
@@ -10,7 +8,7 @@ function exec( module, method, args, cache ) {
 }
 
 var execute = multiplexRequest({
-	action: "execute",
+	action: "exec",
 	cache: false,
 	beforeSend: function() {
 		execKey = 0;

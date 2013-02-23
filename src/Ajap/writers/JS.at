@@ -8,14 +8,14 @@
 
 //: js
 ?DYNAMIC this[ "DYNAMIC" ]
-?TEXT [ "inlineScript", "TEXT" ]
-?URL [ "remoteScript", "URL" ]
-?CODE function() { CODE }
+?: ?TEXT [ "inlineScript", "TEXT" ]
+?: ?URL [ "remoteScript", "URL" ]
+?: ?CODE function() { CODE }
 
 //: css
 ?DYNAMIC this[ "DYNAMIC" ]
-?TEXT [ "inlineStyle", "TEXT" ]
-?URL [ "remoteStyle", "URL" ]
+?: ?TEXT [ "inlineStyle", "TEXT" ]
+?: ?URL [ "remoteStyle", "URL" ]
 
 //: method_ajap
 function( ARGS,,  ) {
@@ -29,46 +29,45 @@ function( form ) {
 
 //: method_remote
 ?TYPE{Ajap} THIS/method_ajap
-?TYPE{Post} THIS/method_post
+?: ?TYPE{Post} THIS/method_post
 
 //: property_member
-?VALUE `VALUE`
-?!VALUE null
+?VALUE `VALUE` ?: VALUE null
 
 //: actual_member
-?CODE function( ARGS,, ) { CODE }
-?!CODE THIS/property_member
+?CODE function( ARGS,, ) { CODE } ?: THIS/property_member
 
 //: member
-?DYNAMIC this[ "DYNAMIC" ]
-?!DYNAMIC THIS/actual_member
+?DYNAMIC this[ "DYNAMIC" ] ?: THIS/actual_member
 
 //: init
-[ "init",
-	?!DYNAMIC THIS/member
-	?DYNAMIC this[ "DYNAMIC" ]
+[ "init", ?DYNAMIC
+	this[ "DYNAMIC" ]
+	?:
+	THIS/member
+	??
 ]
 
 //: service
 function() {
 	return [
-		?DEPENDENCY/dependency,
-		?PARENT	PARENT/parent,
-		?CSS	CSS/css,,,
-		?JS		JS/js,,,
-		?MEMBER [ "define", { MEMBER/member:, } ],
-		?REMOTE [ "define", function( proxy ) { return { REMOTE/method_remote:, }; } ],
-		?NAME	[ "name", [ "NAME",, ] ],
-		?INIT 	INIT/init,,,
+		?DEPENDENCY/dependency, ??
+		?PARENT	PARENT/parent, ??
+		?CSS	CSS/css,,, ??
+		?JS		JS/js,,, ??
+		?MEMBER [ "define", { MEMBER/member:, } ], ??
+		?REMOTE [ "define", function( proxy ) { return { REMOTE/method_remote:, }; } ], ??
+		?NAME	[ "name", [ "NAME",, ] ], ??
+		?INIT 	INIT/init,,, ??
 		true
 	];
 }
 
-//: services
+//: @services
 { THIS/service:, }
 
 //: dynamic
 [ `THIS`,, ]
 
-//: dynamics
+//: @dynamics
 { THIS/service:, }
