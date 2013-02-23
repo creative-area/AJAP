@@ -32,7 +32,7 @@ class Ajap {
 	}
 
 	public static function isRenderingModule() {
-  		return !!$this->writer;
+  		return !!( Ajap::$currentEngine && Ajap::$currentEngine->writer );
 	}
 
 	private static $implicit = array();

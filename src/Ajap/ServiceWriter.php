@@ -1,20 +1,21 @@
 <?php
 
-class AjapServiceWriter extends AjapJSWriter {
+class AjapServiceWriter {
 	
 	private $class;
+	private $options;
 
-	private $className;
 	private $methodsToIgnore;
 	
-	public function __construct( &$class ) {
+	public function __construct( &$class, &$options ) {
 		$this->class =& $class;
-		$this->className = $class->getName();
+		$this->options =& $options;
+		$className = $class->name;
 		$this->methodsToIgnore = array(
-			$this->className => true,
-			$this->className . "Common" => true,
-			$this->className . "Service" => true,
-			$this->className . "Execute" => true,
+			$className => true,
+			$className . "Common" => true,
+			$className . "Service" => true,
+			$className . "Execute" => true,
 			"__construct" => true,
 			"__destruct" => true
 		);
@@ -26,7 +27,7 @@ class AjapServiceWriter extends AjapJSWriter {
 			$instance = $this->class->newInstance();
 			if ( !$this->class->getAnnotation( "Base" ) ) {
 				foreach( array( "Common", "Service" ) as $type ) {
-					if (( $method =& $this->getMethod( $this->className . $type ) )) {
+					if (( $method =& $this->getMethod( $this->class->name . $type ) )) {
 						$method->invoke( $instance );
 					}
 				}
@@ -45,9 +46,13 @@ class AjapServiceWriter extends AjapJSWriter {
 		}
 		return $method;
 	}
-	
-	private function getPropertyValue( $name ) {
-		return json_encode( $this->getInstance()->$name );
+
+	private function &getArgs( &$method ) {
+		$args = array();
+		foreach( $method->getParameters() as $param ) {
+			$args[] = '$' . $param->name;
+		}
+		return $args;
 	}
 	
 	private function callMethod( &$method ) {
@@ -57,148 +62,149 @@ class AjapServiceWriter extends AjapJSWriter {
 			? $method->invokeArgs( $this->getInstance(), array_fill( 0, $nbParams, null ) )
 			: $method->invoke( $this->getInstance() );
 	}
-	
-	private function importFile( $type, $path ) {
-		return json_encode( "$type:$path" );
-	}
-	
-	private function generateTemplateMethod( &$method ) {
-		return ajap_compileTemplate( $this->callMethod( $method ), $method->getAnnotation( "Template")->normalizeSpace );
-	}
-	
-	private function generateJSMethod( &$method ) {
-		return $this->callMethod( $method );
-	}
-	
-	private function generateAJAPMethod( &$method, &$params ) {
-		return $this->call( "__ajap.exec", array( 
-			json_encode( $this->className ),
-			json_encode( $method->getName() ),
-			$this->_array( $params )
-		) ) . ";";
-	}
-	
-	private function generatePostMethod( &$method, &$params ) {
-		return $this->call( "__ajap.post", array( 
-			json_encode( $this->className ),
-			json_encode( $method->getName() ),
-			$params[ 0 ]
-		) ) . ";";
-	}
-	
-	private function generateMethod( $type, $name ) {
-		$method =& $this->getMethod( $name );
-		$generate = "generate" . $type . "Method";
-		$params = array_map( function( $param ) {
-			return "\$" . $param->getName();
-		}, $method->getParameters() );
-		return $this->func( $this->$generate( $method, $params ), $params );
+
+	private function property( $name ) {
+		return array(
+			"value" => $this->getInstance()->$name,
+		);
 	}
 
-	private $dynamic;
-	private $includes;
-	private $object;
-	
-	private function handleDynamic( $method, $args ) {
-		$dynCount = count( $this->dynamic );
-		$args = array_map( function( $value ) {
-			if ( is_string( $value ) ) {
-				$value = preg_replace( "/\\\$/", "\\\$", $value );
-			}
-			return json_encode( $value );
-		}, $args );
-		$this->dynamic[] = "\$writer->$method( " . implode( ", ", $args ) . " )";
-		return "__ajap.dynamic[ " . ( $dynCount ) . " ]";
+	private function Template( $name ) {
+		$method =& $this->getMethod( $name );
+		return array(
+			"code" => ajap_compileTemplate(
+				$this->callMethod( $method ),
+				$method->getAnnotation( "Template" )->normalizeSpace
+			),
+			"args" => $this->getArgs( $method ),
+		);
 	}
 	
+	private function JS( $name ) {
+		$method =& $this->getMethod( $name );
+		return array(
+			"code" => $this->callMethod( $method ),
+			"args" => $this->getArgs( $method ),
+		);
+	}
+
+	private $service;
+	private $dynamic;
+
 	private function handle( &$reflector, $method ) {
 		$args = array_slice( func_get_args(), 2 );
-		return $reflector->getAnnotation( "Dynamic" )
-			? $this->handleDynamic( $method, $args )
-			: call_user_func_array( array( $this, $method ), $args );
-	}
-	
-	private function renderDynamic() {
-		if ( !count( $this->dynamic ) ) {
-			return false;
+		if ( $reflector && $reflector->getAnnotation( "Dynamic" ) ) {
+			$this->dynamic[] = array(
+				"method" => $method,
+				"args" => $args,
+			);
+			return array(
+				"dynamic" => count( $this->dynamic ) - 1,
+			);
 		}
-		$cname = json_encode( $this->className );
-		return
-			"require_once " . json_encode( $this->class->getFileName() ) . ";\n"
-			. "\$writer =& new AjapServiceWriter( AjapClass::get( $cname ) );\n"
-			. "\$dynamic[ $cname ] = array(\n\t" . implode( ",\n\t", $this->dynamic ) . "\n);\n";
+		return call_user_func_array( array( $this, $method ), $args );
 	}
 	
-	public function render() {
-		
-		$time = microtime( true );
-		
+	public function parse() {
+
+		$this->service = array();
+
+		$service =& $this->service;
+
+		$class =& $this->class;
+
 		$this->dynamic = array();
-		
-		$this->includes = array();
-		
+
+		if (( $dependsOn = $class->getAnnotation( "dependsOn" ) )) {
+			$service[ "dependency" ]  = $dependsOn;
+		}
+		do {
+			$parent = $class->getParentClass();
+			if ( ajap_isAjap( $this->options[ "path" ], $parent ) ) {
+				$service[ "parent" ] = $parent->name;
+				break;
+			}
+		} while( $parent );
+
+		$names = $class->getAnnotation( "Alias" );
+		if ( !$class->getAnnotation( "Volatile" ) ) {
+			$defaultName = array( $class->name );
+			$names = $names ? array_merge( $defaultName, $names ) : $defaultName;
+		}
+		if ( $names ) {
+			$service[ "name" ] = $names;
+		}
+
 		foreach( array( "CSS", "JS" ) as $type ) {
 			if (( $paths = $this->class->getAnnotation( $type ) )) {
 				$lType = strtolower( $type );
 				foreach( $paths as $path ) {
-					$value = "";
-					if ( preg_match( "/^method:/", $path ) ) {
-						$method = substr( $path, 7 );
-						if (( $method=& $this->getMethod( $method ) )) {
-							$value = $this->handle( $method, "importFile", $type, $path );
-						} else {
-							throw new AjapException( "Unknown or unreachable method $path" );
+					$method = null;
+					$match = array();
+					if ( preg_match( "/^method:(.+)$/", $path, $match ) ) {
+						$method =& $this->getMethod( $match[ 1 ] );
+						if ( !$method ) {
+							throw new AjapException( "Unknown or unreachable method $match[1]" );
 						}
-					} else {
-						$value = $this->importFile( $type, $path );
 					}
-					$this->includes[] = $this->call( "__ajap.$lType", array( $value ) );
+					$service[ $lType ][] = $this->handle( $method, "import$type", $path );
+					if ( $method ) {
+						$this->methodsToIgnore[ $method->name ] = true;
+					}
 				}
 			}
 		}
-		
-		$this->includes = $this->statements( $this->includes );
-		
-		$this->object = array();
 		
 		foreach( $this->class->getProperties() as $property ) {
 			if ( $property->isStatic() || !$property->isPublic()
 				|| $property->getAnnotation( "Local" ) ) {
 				continue;
 			}
-			$name = $property->getName();
-			$this->object[ "\$$name" ] = $this->handle( $property, "getPropertyValue", $name );
+			$name = $property->name;
+			$service[ "member" ][ "\$$name" ] = $this->handle( $property, "property", $name );
 		}
 
 		foreach( $this->class->getMethods() as $method ) {
 			if ( $method->isStatic() || !$method->isPublic()
 				|| $method->getAnnotation( "Local" )
-				|| isset( $this->methodsToIgnore[( $name = $method->getName() )] ) ) {
+				|| isset( $this->methodsToIgnore[( $name = $method->name )] ) ) {
 				continue;
 			}
-			$type = "AJAP";
-			foreach( array( "Template", "JS", "JSONP", "Post" ) as $annotation ) {
+			if ( $method->getAnnotation( "Init" ) ) {
+				$service[ "init" ][] = $this->handle( $method, "JS", $name );
+				continue;
+			}
+			
+			$type = "Ajap";
+			$simpleRemote = true;
+			foreach( array(
+				"Template" => false,
+				"JS" => false,
+				"JSONP" => false,
+				"Post" => true
+			) as $annotation => $r ) {
 				if ( $method->getAnnotation( $annotation ) ) {
 					$type = $annotation;
+					$simpleRemote = $r;
 					break;
 				}
 			}
-			$this->object[ $name ] = $this->handle( $method, "generateMethod", $type, $name );
+			if ( $simpleRemote ) {
+				$service[ "remote" ][ $name ] = array(
+					"type" => $type,
+					"args" => $this->getArgs( $method ),
+					"cache" => $method->getAnnotation( "cache" ),
+				);
+			} else {
+				$service[ "member" ][ $name ] = $this->handle( $method, $type, $name );
+			}
 		}
 		
-		$this->object = $this->obj( $this->object );
-		
-		$time = microtime( true ) - $time;
-		
-		$ts = explode( " ", microtime() );
-		
-		$ts = $ts[ 1 ] . explode( ".", $ts[ 0 ] )[ 1 ];
-		
 		return array(
-			"ts" => $ts,
-			"time" => $time,
-			"dynamic" => $this->renderDynamic(),
-			"static" => $this->func( $this->includes . "return " . $this->object . ";", array( "__ajap" ) ) 
+			"ts" => date( "YmdHis" ),
+			"name" => $class->name,
+			"data" => &$this->dynamic,
+			"service" => &$service,
 		);
 	}
 }

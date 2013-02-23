@@ -1,13 +1,19 @@
-window.Ajap || ( window.Ajap = (function( window, Ajap, URL ) {
+window.Ajap || ( window.Ajap = function( jQuery ) {
 
 include( "ext/json3.min.js" );
-include( "ext/jquery.jsonp.min.js" );
 
-include( "utils.js" );
-include( "ajax.js" );
-include( "service.js" );
-include( "execute.js" );
+if ( !jQuery.jsonp ) {
+	include( "ext/jquery.jsonp.min.js" );
+}
 
-return Ajap;
+include( "lib/utils.js" );
+include( "lib/ajax.js" );
 
-})( window, {}, "<<uri>>" ) );
+include( "core/load.js" );
+
+return {
+	load: load,
+	unload: unload
+};
+
+} )( jQuery );

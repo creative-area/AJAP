@@ -1,0 +1,74 @@
+<< JS >>
+
+//: dependency
+[ "dependsOn", [ "THIS",, ] ]
+
+//: parent
+[ "extend", "THIS" ]
+
+//: js
+?DYNAMIC this[ "DYNAMIC" ]
+?TEXT [ "inlineScript", "TEXT" ]
+?URL [ "remoteScript", "URL" ]
+?CODE function() { CODE }
+
+//: css
+?DYNAMIC this[ "DYNAMIC" ]
+?TEXT [ "inlineStyle", "TEXT" ]
+?URL [ "remoteStyle", "URL" ]
+
+//: method_ajap
+function( ARGS,,  ) {
+	return proxy.exec( "@", [ ARGS,, ], `CACHE` );
+}
+
+//: method_post
+function( form ) {
+	return proxy.exec( "@", [ $( form ).serialize() ], `CACHE` );
+}
+
+//: method_remote
+?TYPE{Ajap} THIS/method_ajap
+?TYPE{Post} THIS/method_post
+
+//: property_member
+?VALUE `VALUE`
+?!VALUE null
+
+//: actual_member
+?CODE function( ARGS,, ) { CODE }
+?!CODE THIS/property_member
+
+//: member
+?DYNAMIC this[ "DYNAMIC" ]
+?!DYNAMIC THIS/actual_member
+
+//: init
+[ "init",
+	?!DYNAMIC THIS/member
+	?DYNAMIC this[ "DYNAMIC" ]
+]
+
+//: service
+function() {
+	return [
+		?DEPENDENCY/dependency,
+		?PARENT	PARENT/parent,
+		?CSS	CSS/css,,,
+		?JS		JS/js,,,
+		?MEMBER [ "define", { MEMBER/member:, } ],
+		?REMOTE [ "define", function( proxy ) { return { REMOTE/method_remote:, }; } ],
+		?NAME	[ "name", [ "NAME",, ] ],
+		?INIT 	INIT/init,,,
+		true
+	];
+}
+
+//: services
+{ THIS/service:, }
+
+//: dynamic
+[ `THIS`,, ]
+
+//: dynamics
+{ THIS/service:, }

@@ -1,0 +1,12 @@
+<< PHP >>
+
+//:element
+$writer->METHOD( `ARGS`,, )
+
+//: main
+<?php
+
+$writer = new AjapServiceWriter( AjapClass::get( "NAME" ) );
+$output[ "NAME" ] = array( 'ts' => "TS", 'data' => array(
+DATA/element:,
+) );

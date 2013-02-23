@@ -2,6 +2,7 @@ test/cache/__ajap_cache
 .project
 .settings
 .buildpath
+.idea
 *~
 *.diff
 *.patch
