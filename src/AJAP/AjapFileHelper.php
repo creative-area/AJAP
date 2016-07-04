@@ -3,8 +3,8 @@
 require_once dirname(__FILE__)."/AjapStringHelper.php";
 
 class AjapFileHelper {
-	
-	public function resolveURI($uri,$base_uri,$base_dir) {
+
+	public static function resolveURI($uri,$base_uri,$base_dir) {
 		if ($uri===FALSE) return FALSE;
 		static $base_uri_root = array();
 		if (AjapStringHelper::startsWith($uri,'!')) {
@@ -42,7 +42,7 @@ class AjapFileHelper {
 		$dirname = dirname($path);
    		return ($dirname=='/') ? '' : $dirname;
 	}
-	
+
 	public static function PHP_SELF_dirname() {
 		global $_SERVER;
 		return
@@ -61,13 +61,13 @@ class AjapFileHelper {
 		}
 		return $directories[$path];
 	}
-	
+
 	static private $fileNames = array();
 	static private $moduleNames = array();
-	
+
 	static public $use = 0;
 	static public $cacheUse = 0;
-	
+
 	public static function getFileName(&$path,&$module,$extension="php") {
 		static $files = null;
 		static $modules = null;
@@ -147,7 +147,7 @@ class AjapFileHelper {
 		$files[$path][$extension][$basename] = $dir.DIRECTORY_SEPARATOR."$basename.$extension";
 		$modules[$path][$dir.DIRECTORY_SEPARATOR."$basename.$extension"] = FALSE;
 		return FALSE;
-	}	
+	}
 }
 
 ?>
